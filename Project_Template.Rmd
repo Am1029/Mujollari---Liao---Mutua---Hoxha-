@@ -10,10 +10,27 @@
 # Set your working directory
 
 # Load your packages
+#install.packages('readxl')
+library(readxl)
+library(here)
+library(tidyverse)
+library(lubridate)
 
 # Set your ggplot theme
 
 # Load your datasets
+
+#Importing eGRID dataset
+generators_1996 <- read_xls(here("Data/Raw/eGRID1996_plant.xls"), sheet = 'EGRDGEN96', skip = 3)
+generators_1997 <- read_xls(here("Data/Raw/eGRID1997_plant.xls"), sheet = 'EGRDGEN97', skip = 3)
+generators_1998 <- read_xls(here("Data/Raw/eGRID1998_plant.xls"), sheet = 'EGRDGEN98', skip = 3)
+generators_1999 <- read_xls(here("Data/Raw/eGRID1999_plant.xls"), sheet = 'EGRDGEN99', skip = 3)
+generators_2000 <- read_xls(here("Data/Raw/eGRID2000_plant.xls"), sheet = 'EGRDGEN00', skip = 3)
+generators_2004 <- read_xls(here("Data/Raw/eGRID2004_plant.xls"), sheet = 'EGRDGEN04', skip = 3)
+generators_2005 <- read_xls(here("Data/Raw/eGRID2005_plant.xls"), sheet = 'GEN05', skip = 3)
+generators_2007 <- read_xls(here("Data/Raw/eGRID2007_plant.xls"), sheet = 'GEN07', skip = 3)
+generators_2009 <- read_xls(here("Data/Raw/eGRID2009_data.xls"), sheet = 'GEN09', skip = 3)
+generators_2010 <- read_xls(here("Data/Raw/eGRID2010_Data.xls"), sheet = 'GEN10', skip = 3)
 
 ```
 
