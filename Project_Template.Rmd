@@ -20,119 +20,47 @@ library(lubridate)
 
 # Load your datasets
 
-#Importing eGRID dataset
-generators_1996_raw <- read_xls(here("Data/Raw/eGRID1996_plant.xls"), sheet = 'EGRDGEN96', skip = 3)
-generators_1997_raw <- read_xls(here("Data/Raw/eGRID1997_plant.xls"), sheet = 'EGRDGEN97', skip = 3)
-generators_1998_raw <- read_xls(here("Data/Raw/eGRID1998_plant.xls"), sheet = 'EGRDGEN98', skip = 3)
-generators_1999_raw <- read_xls(here("Data/Raw/eGRID1999_plant.xls"), sheet = 'EGRDGEN99', skip = 3)
-generators_2000_raw <- read_xls(here("Data/Raw/eGRID2000_plant.xls"), sheet = 'EGRDGEN00', skip = 3)
-generators_2004_raw <- read_xls(here("Data/Raw/eGRID2004_plant.xls"), sheet = 'EGRDGEN04', skip = 3)
-generators_2005_raw <- read_xls(here("Data/Raw/eGRID2005_plant.xls"), sheet = 'GEN05', skip = 3)
-generators_2007_raw <- read_xls(here("Data/Raw/eGRID2007_plant.xls"), sheet = 'GEN07', skip = 3)
-generators_2009_raw <- read_xls(here("Data/Raw/eGRID2009_data.xls"), sheet = 'GEN09', skip = 3)
-generators_2010_raw <- read_xls(here("Data/Raw/eGRID2010_Data.xls"), sheet = 'GEN10', skip = 3)
-generators_2020_raw <- read_xlsx(here("Data/Raw/eGRID2020_Data_v2.xlsx"), sheet = 'GEN20', skip = 1)
-generators_2021_raw <- read_xlsx(here("Data/Raw/eGRID2021_data.xlsx"), sheet = 'GEN21', skip = 1)
+#Importing electricity generation datasets in bulk
+eia923GenerationFiles = list.files(path = "./Data/Raw/eia923/", pattern=".xlsx", full.names=TRUE)
 
-#Wrangling 1996 generator data
-generators_1996_processed <- generators_1996_raw %>% 
-  select(`PSTATABB
-State abbreviation`,`ORISPL
-DOE/EIA ORIS plant or facility code`,`FUELG1
-Primary generator fuel`,`NAMEPCAP
-Generator nameplate capacity (MW)`,`GENNTAN
-Generator 1996 annual net generation (MWh)`) %>% 
-  na.omit() %>% 
-  rename('PSTATABB' = `PSTATABB
-State abbreviation`, 'ORIS' = `ORISPL
-DOE/EIA ORIS plant or facility code`, 'FUELG1' = `FUELG1
-Primary generator fuel`, 'NAMEPCAP' = `NAMEPCAP
-Generator nameplate capacity (MW)`, 'GENNTAN' = `GENNTAN
-Generator 1996 annual net generation (MWh)`) %>% 
-  mutate(Year = 1996) %>% 
-  group_by(PSTATABB) %>% 
-  filter(!grepl('N/A', GENNTAN)) %>% 
-  summarise(GENNTAN = sum(as.numeric(GENNTAN)))
+#Range of file paths for data from Year 2001 to 2010 that require top 6 rows to be skipped
+eia923GenerationFiles[1:10]
 
-#Wrangling 1997 generator data
-generators_1997_processed <- generators_1997_raw %>% 
-  select(`PSTATABB
-State abbreviation`,`ORISPL
-DOE/EIA ORIS plant or facility code`,`FUELG1
-Primary generator fuel`,`NAMEPCAP
-Generator nameplate capacity (MW)`,`GENNTAN
-Generator 1997 annual net generation (MWh)`) %>% 
-  na.omit() %>% 
-  rename('PSTATABB' = `PSTATABB
-State abbreviation`, 'ORIS' = `ORISPL
-DOE/EIA ORIS plant or facility code`, 'FUELG1' = `FUELG1
-Primary generator fuel`, 'NAMEPCAP' = `NAMEPCAP
-Generator nameplate capacity (MW)`, 'GENNTAN' = `GENNTAN
-Generator 1997 annual net generation (MWh)`) %>% 
-  mutate(Year = 1997) %>% 
-  group_by(PSTATABB) %>% 
-  filter(!grepl('N/A', GENNTAN)) %>% 
-  summarise(GENNTAN = sum(as.numeric(GENNTAN)))
+#Range of file paths for data from Year 2011 to 2022 that require top 5 rows to be skipped
+eia923GenerationFiles[11:22]
 
-#Wrangling 1998 generator data
-generators_1998_processed <- generators_1998_raw %>% 
-  select(`PSTATABB
-State abbreviation`,`ORISPL
-DOE/EIA ORIS plant or facility code`,`FUELG1
-Primary generator fuel`,`NAMEPCAP
-Generator nameplate capacity (MW)`,`GENNTAN
-Generator 1998 annual net generation (MWh)`) %>% 
-  na.omit() %>% 
-  rename('PSTATABB' = `PSTATABB
-State abbreviation`, 'ORIS' = `ORISPL
-DOE/EIA ORIS plant or facility code`, 'FUELG1' = `FUELG1
-Primary generator fuel`, 'NAMEPCAP' = `NAMEPCAP
-Generator nameplate capacity (MW)`, 'GENNTAN' = `GENNTAN
-Generator 1998 annual net generation (MWh)`) %>% 
-  mutate(Year = 1998) %>% 
-  group_by(PSTATABB) %>% 
-  filter(!grepl('N/A', GENNTAN)) %>% 
-  summarise(GENNTAN = sum(as.numeric(GENNTAN)))
+#Reading and combining files in one dataframe using ldply function
+generation_2001to2010_raw <- plyr::ldply(eia923GenerationFiles[1:10],read_excel,skip = 6)
 
-#Wrangling 1999 generator data
-generators_1999_processed <- generators_1999_raw %>% 
-  select(`PSTATABB
-State abbreviation`,`ORISPL
-DOE/EIA ORIS plant or facility code`,`FUELG1
-Primary generator fuel`,`NAMEPCAP
-Generator nameplate capacity (MW)`,`GENNTAN
-Generator 1999 annual net generation (MWh)`) %>% 
-  na.omit() %>% 
-  rename('PSTATABB' = `PSTATABB
-State abbreviation`, 'ORIS' = `ORISPL
-DOE/EIA ORIS plant or facility code`, 'FUELG1' = `FUELG1
-Primary generator fuel`, 'NAMEPCAP' = `NAMEPCAP
-Generator nameplate capacity (MW)`, 'GENNTAN' = `GENNTAN
-Generator 1999 annual net generation (MWh)`) %>% 
-  mutate(Year = 1999) %>% 
-  group_by(PSTATABB) %>% 
-  filter(!grepl('N/A', GENNTAN)) %>% 
-  summarise(GENNTAN = sum(as.numeric(GENNTAN)))
+#Storing column names to use the same descriptors for subsequent years
+column_names <- colnames(generation_2001to2010_raw)
+generation_2011to2022_raw <- plyr::ldply(eia923GenerationFiles[11:22],read_excel,skip = 6, col_names = column_names)
 
-#Wrangling 2000 generator data
-generators_2000_processed <- generators_2000_raw %>% 
-  select(`PSTATABB
-State abbreviation`,`ORISPL
-DOE/EIA ORIS plant or facility code`,`FUELG1
-Primary generator fuel`,`NAMEPCAP
-Generator nameplate capacity (MW)`,`GENNTAN
-Generator 2000 annual net generation (MWh)`) %>% 
+#Wrangling 2001 to 2010 generation data
+generation_2001to2010_processed <- generation_2001to2010_raw %>% 
+  select(`Plant ID`,`Plant Name`, State,`Census Region`,`NERC Region`,`Reported Fuel Type Code`,`NET GENERATION (megawatthours)`,Year) %>% 
   na.omit() %>% 
-  rename('PSTATABB' = `PSTATABB
-State abbreviation`, 'ORIS' = `ORISPL
-DOE/EIA ORIS plant or facility code`, 'FUELG1' = `FUELG1
-Primary generator fuel`, 'NAMEPCAP' = `NAMEPCAP
-Generator nameplate capacity (MW)`, 'GENNTAN' = `GENNTAN
-Generator 2000 annual net generation (MWh)`) %>% 
-  mutate(Year = 2000) %>% 
-  group_by(PSTATABB) %>% 
-  filter(!grepl('N/A', GENNTAN)) %>% 
-  summarise(GENNTAN = sum(as.numeric(GENNTAN)))
+  rename('PCODE' = `Plant ID`, 'PNAME' = `Plant Name`, 'CENSUS' = `Census Region`, 'NERC' = `NERC Region`, 'FUEL' = `Reported Fuel Type Code`, 'GENERATION' = `NET GENERATION (megawatthours)`) %>%
+  filter(FUEL %in% c('SUN', 'WND', 'GEO')) %>% 
+  group_by(State) %>%
+  summarise(GENERATION = sum(GENERATION))
+
+#Writing out output as .csv file
+write.csv(generation_2001to2010_processed, row.names = FALSE, file = here("Data/Processed/generation_2001to2010_processed.csv"))
+
+#Wrangling 2011 to 2022 generation data
+generation_2011to2022_processed <- generation_2011to2022_raw %>% 
+  select(`Plant ID`,`Plant Name`, State,`Census Region`,`NERC Region`,`Reported Fuel Type Code`,`NET GENERATION (megawatthours)`,Year) %>% 
+  na.omit() %>% 
+  rename('PCODE' = `Plant ID`, 'PNAME' = `Plant Name`, 'CENSUS' = `Census Region`, 'NERC' = `NERC Region`, 'FUEL' = `Reported Fuel Type Code`, 'GENERATION' = `NET GENERATION (megawatthours)`) %>%
+  filter(FUEL %in% c('SUN', 'WND', 'GEO')) %>% 
+  group_by(State) %>%
+  summarise(GENERATION = sum(GENERATION))
+
+#Writing out output as .csv file
+write.csv(generation_2011to2022_processed, row.names = FALSE, file = here("Data/Processed/generation_2011to2022_processed.csv"))
+
+
 
 ```
 
