@@ -149,14 +149,44 @@ df_NO2_top10<-df_pollutant_top10 %>%
 df_PM10_top10<-df_pollutant_top10 %>%
   filter(Pollutant=="PM10 Total 0-10um STP")
 
-ggplot(df_PM10_top10, aes(x =Date, y = Mean, color=State)) +
+#plotting trend for top 10 states
+plot.PM10<-ggplot(df_PM10_top10, aes(x =Date, y = Mean, color=State)) +
   geom_line()+
-  labs(x="Date",y="")+
-  ggtitle("PM2.5")
-ggplot(df_PM2.5_top10, aes(x =Date, y = Mean, color=State)) +
-  geom_line()
+  labs(x="Date",y="mg/m\u00B3")+
+  ggtitle("PM10 Concentration")+
+  theme(plot.title = element_text(hjust = 0.5))
+plot.PM10
+
+plot.PM2.5<-ggplot(df_PM2.5_top10, aes(x =Date, y = Mean, color=State)) +
+  geom_line()+
+  labs(x="Date",y="mg/m\u00B3")+
+  ggtitle("PM2.5 Concentration")+
+  theme(plot.title = element_text(hjust = 0.5))
+plot.PM2.5
+
+plot.CO<-ggplot(df_CO_top10, aes(x =Date, y = Mean, color=State)) +
+  geom_line()+
+  labs(x="Date",y="Parts per million")+
+  ggtitle("Carbon Monoxide Concentration")+
+  theme(plot.title = element_text(hjust = 0.5))
+plot.CO
+
+plot.SO2<-ggplot(df_SO2_top10, aes(x =Date, y = Mean, color=State)) +
+  geom_line()+
+  labs(x="Date",y="Parts per million")+
+  ggtitle("Sulfur Dioxide Concentration")+
+  theme(plot.title = element_text(hjust = 0.5))
+plot.SO2
+
+plot.NO2<-ggplot(df_NO2_top10, aes(x =Date, y = Mean, color=State)) +
+  geom_line()+
+  labs(x="Date",y="Parts per billion")+
+  ggtitle("Nitrogen Dioxide Concentration")+
+  theme(plot.title = element_text(hjust = 0.5))
+plot.NO2
 
 ```
+
 ```{r Time Series, message=FALSE}
 PM
 
