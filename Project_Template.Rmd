@@ -6,33 +6,50 @@
 \listoffigures 
 \newpage
 
-```{r setup, include=FALSE}
+```{r Setup, include=FALSE}
 # Set your working directory
 
 # Load your packages
 #install.packages('readxl')
 #install.packages('foreign')
+#install.packages('sf')
+#install.packages('leaflet')
+#install.packages('mapview')
 library(readxl)
 library(here)
 library(tidyverse)
 library(lubridate)
 library(foreign)
 library(dplyr)
+library(tidyverse, quietly = TRUE)
+library(sf)
+library(leaflet)
+library(mapview); mapviewOptions(fgb = FALSE)
 
 # Set your ggplot theme
 theme_set(theme_minimal())
+
+# Check working directory
+here()
 
 # Load your datasets
 #Importing processed energy monthly generation data
 df_generation_monthly <- read.csv(here("Data/Processed/df_generation_monthly.csv"),
                                   stringsAsFactors = TRUE)
+#Importing processed pollutant monthly data 
+df_pollutant_monthly <- read.csv(here("Data/Processed/df_pollutant.csv"),
+                                  stringsAsFactors = TRUE)
 
 #Importing processed plant location and capacity data
 df_plantcapacities_locations <- read.csv(here("Data/Processed/df_plantcapacities_locations.csv"),
                                   stringsAsFactors = TRUE)
+#Importing processed pollutant observation stations data
+df_station_locations <- read.csv(here("Data/Processed/df_latitude&longitude.csv"),
+                                  stringsAsFactors = TRUE)
 
 #Setting date columns as date objects
 df_generation_monthly$Date <- ymd(df_generation_monthly$Date)
+df_pollutant_monthly$Date <- ym(df_pollutant_monthly$Date)
 
 ```
 
@@ -50,7 +67,7 @@ df_generation_monthly$Date <- ymd(df_generation_monthly$Date)
 \newpage
 
 # Exploratory Analysis 
-```{r visualization}
+```{r Visualization: Generation}
 top_states_renewables2022 <- df_generation_monthly %>% 
   filter(Year == 2022) %>% 
   group_by(State) %>% 
@@ -88,6 +105,7 @@ plot.AnnualGeneration <- df_generation_annual %>%
 
 print(plot.AnnualGeneration)
 ```
+
 
 
 
