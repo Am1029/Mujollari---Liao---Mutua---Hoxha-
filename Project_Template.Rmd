@@ -51,6 +51,13 @@ df_generation_monthly$Date <- ymd(df_generation_monthly$Date)
 
 # Exploratory Analysis 
 ```{r visualization}
+top_states_renewables2022 <- df_generation_monthly %>% 
+  filter(Year == 2022) %>% 
+  group_by(State) %>% 
+  summarise(NetGeneration = sum(NetGeneration)) %>% 
+  mutate(Rank = rank(-NetGeneration)) %>% 
+  filter(Rank %in% c(1:10))
+
 #visualizing renewable energy generation over time
 
 #Summarizing monthly data into annual data
@@ -58,8 +65,9 @@ df_generation_annual <- df_generation_monthly %>%
   group_by(Year) %>% 
   summarise(NetGeneration = sum(NetGeneration))
 
-#Plotting out trend
-plot.MonthlyGeneration <- df_generation_monthly %>% 
+#Plotting out trend for top 10 states
+plot.MonthlyGeneration <- df_generation_monthly %>%
+  filter(State %in% top_states_renewables2022$State) %>% 
   ggplot(aes(x=Date,
              y=NetGeneration,
              color=State)) +
