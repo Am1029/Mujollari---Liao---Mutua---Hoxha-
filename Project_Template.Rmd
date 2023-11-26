@@ -11,56 +11,28 @@
 
 # Load your packages
 #install.packages('readxl')
+#install.packages('foreign')
 library(readxl)
 library(here)
 library(tidyverse)
 library(lubridate)
+library(foreign)
+library(dplyr)
 
 # Set your ggplot theme
+theme_set(theme_minimal())
 
 # Load your datasets
+#Importing processed energy monthly generation data
+df_generation_monthly <- read.csv(here("Data/Processed/df_generation_monthly.csv"),
+                                  stringsAsFactors = TRUE)
 
-#Importing electricity generation datasets in bulk
-eia923GenerationFiles = list.files(path = "./Data/Raw/eia923/", pattern=".xlsx", full.names=TRUE)
+#Importing processed plant location and capacity data
+df_plantcapacities_locations <- read.csv(here("Data/Processed/df_plantcapacities_locations.csv"),
+                                  stringsAsFactors = TRUE)
 
-#Range of file paths for data from Year 2001 to 2010 that require top 6 rows to be skipped
-eia923GenerationFiles[1:10]
-
-#Range of file paths for data from Year 2011 to 2022 that require top 5 rows to be skipped
-eia923GenerationFiles[11:22]
-
-#Reading and combining files in one dataframe using ldply function
-generation_2001to2010_raw <- plyr::ldply(eia923GenerationFiles[1:10],read_excel,skip = 6)
-
-#Storing column names to use the same descriptors for subsequent years
-column_names <- colnames(generation_2001to2010_raw)
-generation_2011to2022_raw <- plyr::ldply(eia923GenerationFiles[11:22],read_excel,skip = 6, col_names = column_names)
-
-#Wrangling 2001 to 2010 generation data
-generation_2001to2010_processed <- generation_2001to2010_raw %>% 
-  select(`Plant ID`,`Plant Name`, State,`Census Region`,`NERC Region`,`Reported Fuel Type Code`,`NET GENERATION (megawatthours)`,Year) %>% 
-  na.omit() %>% 
-  rename('PCODE' = `Plant ID`, 'PNAME' = `Plant Name`, 'CENSUS' = `Census Region`, 'NERC' = `NERC Region`, 'FUEL' = `Reported Fuel Type Code`, 'GENERATION' = `NET GENERATION (megawatthours)`) %>%
-  filter(FUEL %in% c('SUN', 'WND', 'GEO')) %>% 
-  group_by(State) %>%
-  summarise(GENERATION = sum(GENERATION))
-
-#Writing out output as .csv file
-write.csv(generation_2001to2010_processed, row.names = FALSE, file = here("Data/Processed/generation_2001to2010_processed.csv"))
-
-#Wrangling 2011 to 2022 generation data
-generation_2011to2022_processed <- generation_2011to2022_raw %>% 
-  select(`Plant ID`,`Plant Name`, State,`Census Region`,`NERC Region`,`Reported Fuel Type Code`,`NET GENERATION (megawatthours)`,Year) %>% 
-  na.omit() %>% 
-  rename('PCODE' = `Plant ID`, 'PNAME' = `Plant Name`, 'CENSUS' = `Census Region`, 'NERC' = `NERC Region`, 'FUEL' = `Reported Fuel Type Code`, 'GENERATION' = `NET GENERATION (megawatthours)`) %>%
-  filter(FUEL %in% c('SUN', 'WND', 'GEO')) %>% 
-  group_by(State) %>%
-  summarise(GENERATION = sum(GENERATION))
-
-#Writing out output as .csv file
-write.csv(generation_2011to2022_processed, row.names = FALSE, file = here("Data/Processed/generation_2011to2022_processed.csv"))
-
-
+#Setting date columns as date objects
+df_generation_monthly$Date <- ymd(df_generation_monthly$Date)
 
 ```
 
@@ -78,6 +50,36 @@ write.csv(generation_2011to2022_processed, row.names = FALSE, file = here("Data/
 \newpage
 
 # Exploratory Analysis 
+```{r visualization}
+#visualizing renewable energy generation over time
+
+#Summarizing monthly data into annual data
+df_generation_annual <- df_generation_monthly %>% 
+  group_by(Year) %>% 
+  summarise(NetGeneration = sum(NetGeneration))
+
+#Plotting out trend
+plot.MonthlyGeneration <- df_generation_monthly %>% 
+  ggplot(aes(x=Date,
+             y=NetGeneration,
+             color=State)) +
+  geom_line() +
+  labs(x="Date",
+       y="Monthly Energy Generation (MWh)",
+       title="Monthly Renewable Energy Generation per State (MWh)")
+
+print(plot.MonthlyGeneration)
+
+plot.AnnualGeneration <- df_generation_annual %>% 
+  ggplot(aes(x=Year,
+             y=NetGeneration)) +
+  geom_line() +
+  labs(x="Year",
+       y="Annual Energy Generation (MWh)",
+       title="Annual Renewable Energy Generation over time (MWh)")
+
+print(plot.AnnualGeneration)
+```
 
 
 
