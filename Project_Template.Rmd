@@ -10,11 +10,11 @@
 # Set your working directory
 
 # Load your packages
-install.packages('readxl')
-install.packages('foreign')
-install.packages('sf')
-install.packages('leaflet')
-install.packages('mapview')
+#install.packages('readxl')
+#install.packages('foreign')
+#install.packages('sf')
+#install.packages('leaflet')
+#install.packages('mapview')
 library(readxl)
 library(here)
 library(tidyverse)
@@ -44,12 +44,19 @@ df_pollutant_monthly <- read.csv(here("Data/Processed/df_pollutant.csv"),
 df_plantcapacities_locations <- read.csv(here("Data/Processed/df_plantcapacities_locations.csv"),
                                   stringsAsFactors = TRUE)
 #Importing processed pollutant observation stations data
-df_station_locations <- read.csv(here("Data/Processed/df_latitude&longitude.csv"),
+df_station_locations <- read.csv(here("Data/Processed/df_latitude_longitude.csv"),
+                                  stringsAsFactors = TRUE)
+#Importing state abbreviations 
+df_state<- read.csv(here("Data/Processed/df_statename.csv"),
                                   stringsAsFactors = TRUE)
 
 #Setting date columns as date objects
 df_generation_monthly$Date <- ymd(df_generation_monthly$Date)
 df_pollutant_monthly$Date <- ym(df_pollutant_monthly$Date)
+
+#Setting date columns as date objects
+df_generation_monthly$Date <- ymd(df_generation_monthly$Date)
+df_pollutant_monthly$Date <- ymd(df_pollutant_monthly$Date)
 
 ```
 
@@ -106,7 +113,42 @@ plot.AnnualGeneration <- df_generation_annual %>%
 print(plot.AnnualGeneration)
 ```
 
+```{r Visualization: Pollutant CO}
+# Observe air quality variation among the top 10 states in renewable energy generation
+top_states_renewables2022$State
+unique(df_pollutant_monthly$State)
 
+df_pollutant_location<-merge(df_pollutant_monthly,df_state,by='State') #add state abbreviation
+
+df_pollutant_top10<-df_pollutant_location %>%
+  filter(Abbreviation %in% top_states_renewables2022$State) %>%
+  arrange(Date)
+
+#confirm the selection is correct 
+top_states_renewables2022$State
+unique(df_pollutant_top10$Abbreviation)
+
+unique(df_pollutant_top10$Pollutant)
+#CO
+df_CO_top10<-df_pollutant_top10 %>%
+  filter(Pollutant=="Carbon monoxide")
+
+#PM2.5
+df_PM2.5_top10<-df_pollutant_top10 %>%
+  filter(Pollutant=="PM2.5 - Local Conditions")
+
+#SO2
+df_SO2_top10<-df_pollutant_top10 %>%
+  filter(Pollutant=="Sulfur dioxide")
+
+#NO2
+df_NO2_top10<-df_pollutant_top10 %>%
+  filter(Pollutant=="Nitrogen dioxide (NO2)")
+
+#PM10
+df_PM10_top10<-df_pollutant_top10 %>%
+  filter(Pollutant=="PM10 Total 0-10um STP")
+```
 ```{r}
 
 counties_sf<- st_read(here('Data/Spatial/cb_2018_us_county_20m.shp'))
