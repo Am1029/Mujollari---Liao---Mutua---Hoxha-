@@ -10,11 +10,11 @@
 # Set your working directory
 
 # Load your packages
-#install.packages('readxl')
-#install.packages('foreign')
-#install.packages('sf')
-#install.packages('leaflet')
-#install.packages('mapview')
+install.packages('readxl')
+install.packages('foreign')
+install.packages('sf')
+install.packages('leaflet')
+install.packages('mapview')
 library(readxl)
 library(here)
 library(tidyverse)
@@ -107,6 +107,29 @@ print(plot.AnnualGeneration)
 ```
 
 
+```{r}
+
+counties_sf<- st_read(here('Data/Spatial/cb_2018_us_county_20m.shp'))
+
+colnames(counties_sf)
+
+#
+st_crs(counties_sf) 
+
+
+#
+nrow(counties_sf)
+
+#Reveal the extent of this dataset via the st_bbox() function
+st_bbox(counties_sf)
+
+#View the data
+head(counties_sf)
+
+mapView(counties_sf, zcol = "AWATER")
+
+
+```
 
 
 \newpage
