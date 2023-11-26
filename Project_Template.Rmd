@@ -148,7 +148,20 @@ df_NO2_top10<-df_pollutant_top10 %>%
 #PM10
 df_PM10_top10<-df_pollutant_top10 %>%
   filter(Pollutant=="PM10 Total 0-10um STP")
+
+ggplot(df_PM10_top10, aes(x =Date, y = Mean, color=State)) +
+  geom_line()+
+  labs(x="Date",y="")+
+  ggtitle("PM2.5")
+ggplot(df_PM2.5_top10, aes(x =Date, y = Mean, color=State)) +
+  geom_line()
+
 ```
+```{r Time Series, message=FALSE}
+PM
+
+```
+
 ```{r}
 
 counties_sf<- st_read(here('Data/Spatial/cb_2018_us_county_20m.shp'))
