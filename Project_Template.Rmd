@@ -192,27 +192,39 @@ PM
 
 ```
 
-```{r}
+```{r Visualization: Spatial}
 
-counties_sf<- st_read(here('Data/Spatial/cb_2018_us_county_20m.shp'))
+#Reading power plant location data into spatial dataframe
+df_plantcapacities_locations_sf <- df_plantcapacities_locations %>%
+  na.omit() %>% 
+  filter(STATE == 'TX') %>% 
+  st_as_sf(coords = c('LONG','LAT'), crs=4269)
 
-colnames(counties_sf)
+mapview(df_plantcapacities_locations_sf,
+        zcol = 'FUEL',
+        cex = 'CAPACITY',
+        layer.name = 'Renewable Energy Plant Locations in Texas')
+
+
+#counties_sf<- st_read(here('Data/Spatial/cb_2018_us_county_20m.shp')) %>% 
+#  filter(STATEFP == 48)
+
+#colnames(counties_sf)
 
 #
-st_crs(counties_sf) 
+#st_crs(counties_sf) 
 
 
 #
-nrow(counties_sf)
+#nrow(counties_sf)
 
 #Reveal the extent of this dataset via the st_bbox() function
-st_bbox(counties_sf)
+#st_bbox(counties_sf)
 
 #View the data
-head(counties_sf)
+#head(counties_sf)
 
-mapView(counties_sf, zcol = "AWATER")
-
+#mapView(counties_sf, zcol = "AWATER")
 
 ```
 

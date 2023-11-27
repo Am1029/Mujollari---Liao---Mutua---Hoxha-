@@ -36,7 +36,7 @@ generation_2001to2010_processed <- generation_2001to2010_raw %>%
   select(`Plant ID`,`Plant Name`, State,`Census Region`,`NERC Region`,`Reported Fuel Type Code`,NETGEN_JAN:NETGEN_DEC,`NET GENERATION (megawatthours)`,Year) %>% 
   rename('PCODE' = `Plant ID`, 'PNAME' = `Plant Name`, 'CENSUS' = `Census Region`, 'NERC' = `NERC Region`, 'FUEL' = `Reported Fuel Type Code`, '1' = 'NETGEN_JAN', '2' = 'NETGEN_FEB', '3' = 'NETGEN_MAR', '4' = 'NETGEN_APR', '5' = 'NETGEN_MAY', '6' = 'NETGEN_JUN', '7' = 'NETGEN_JUL', '8' = 'NETGEN_AUG', '9' = 'NETGEN_SEP', '10' = 'NETGEN_OCT', '11' = 'NETGEN_NOV', '12' = 'NETGEN_DEC') %>%
   mutate(across(PNAME:FUEL,as.factor)) %>% 
-  filter(FUEL %in% c('SUN', 'WND', 'GEO')) %>% 
+  filter(FUEL %in% c('SUN', 'WND')) %>% 
   group_by(State,Year) %>%
   summarise(across('1':'12', sum, na.rm=TRUE))
 
@@ -51,7 +51,7 @@ generation_2011to2022_processed <- generation_2011to2022_raw %>%
   rename('PCODE' = `Plant ID`, 'PNAME' = `Plant Name`, 'CENSUS' = `Census Region`, 'NERC' = `NERC Region`, 'FUEL' = `Reported Fuel Type Code`, '1' = 'NETGEN_JAN', '2' = 'NETGEN_FEB', '3' = 'NETGEN_MAR', '4' = 'NETGEN_APR', '5' = 'NETGEN_MAY', '6' = 'NETGEN_JUN', '7' = 'NETGEN_JUL', '8' = 'NETGEN_AUG', '9' = 'NETGEN_SEP', '10' = 'NETGEN_OCT', '11' = 'NETGEN_NOV', '12' = 'NETGEN_DEC') %>%
   mutate(across(PNAME:FUEL,as.factor)) %>% 
   mutate(across('1':'12',as.numeric)) %>%
-  filter(FUEL %in% c('SUN', 'WND', 'GEO')) %>% 
+  filter(FUEL %in% c('SUN', 'WND')) %>% 
   group_by(State,Year) %>%
   summarise(across('1':'12', sum, na.rm=TRUE)) 
   
@@ -85,7 +85,7 @@ read.capacity <- function(selected_file, selected_year, rowstoskip){
       na.omit() %>% 
       rename('PCODE' = `Plant Code`, 'STATE' = 'State', 'CAPACITY' = `Nameplate Capacity (MW)`,
              'FUEL' = `Energy Source 1`) %>% 
-      filter(FUEL %in% c('SUN', 'WND', 'GEO')) %>% 
+      filter(FUEL %in% c('SUN', 'WND')) %>% 
       group_by(PCODE, STATE, FUEL, YEAR) %>%
       summarise(CAPACITY = sum(CAPACITY))
   #Return the dataframe
@@ -99,7 +99,7 @@ read.capacity <- function(selected_file, selected_year, rowstoskip){
       mutate(across(where(is.character), factor)) %>% 
       na.omit() %>% 
       rename('PCODE' = 'PLANT_CODE', 'CAPACITY' = 'NAMEPLATE', 'FUEL' = 'ENERGY_SOURCE_1') %>% 
-      filter(FUEL %in% c('SUN', 'WND', 'GEO')) %>% 
+      filter(FUEL %in% c('SUN', 'WND')) %>% 
       group_by(PCODE, STATE, FUEL, YEAR) %>%
       summarise(CAPACITY = sum(CAPACITY))
     #Return the dataframe
@@ -113,7 +113,7 @@ read.capacity <- function(selected_file, selected_year, rowstoskip){
       mutate(across(where(is.character), factor)) %>% 
       na.omit() %>% 
       rename('PCODE' = 'PLNTCODE', 'CAPACITY' = 'NAMEPLATE', 'FUEL' = 'ENERGY_SOURCE_1') %>% 
-      filter(FUEL %in% c('SUN', 'WND', 'GEO')) %>% 
+      filter(FUEL %in% c('SUN', 'WND')) %>% 
       group_by(PCODE, STATE, FUEL, YEAR) %>%
       summarise(CAPACITY = sum(CAPACITY))
     #Return the dataframe
@@ -127,7 +127,7 @@ read.capacity <- function(selected_file, selected_year, rowstoskip){
       mutate(across(where(is.character), factor)) %>% 
       na.omit() %>% 
       rename('PCODE' = 'PLNTCODE', 'CAPACITY' = 'NAMEPLATE', 'FUEL' = 'ENSOURCE1') %>% 
-      filter(FUEL %in% c('SUN', 'WND', 'GEO')) %>% 
+      filter(FUEL %in% c('SUN', 'WND')) %>% 
       group_by(PCODE, FUEL, YEAR) %>%
       summarise(CAPACITY = sum(CAPACITY))
     #Return the dataframe
