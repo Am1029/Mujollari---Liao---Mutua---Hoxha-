@@ -10,11 +10,11 @@
 # Set your working directory
 
 # Load your packages
-#install.packages('readxl')
-#install.packages('foreign')
-#install.packages('sf')
-#install.packages('leaflet')
-#install.packages('mapview')
+install.packages('readxl')
+install.packages('foreign')
+install.packages('sf')
+install.packages('leaflet')
+install.packages('mapview')
 library(readxl)
 library(here)
 library(tidyverse)
@@ -233,7 +233,153 @@ mapview(df_plantcapacities_locations_sf,
 
 # Analysis
 
+```{r}
+#Box Plot for Comparing Distributions of a Single Pollutant Across Multiple States:
 
+
+# PM2.5
+ggplot(df_PM2.5_top10, aes(x = State, y = Mean, fill = State)) +
+  geom_boxplot() +
+  labs(title = "Distribution of PM2.5 Levels Across States",
+       x = "State",
+       y = "PM2.5 Concentration (µg/m³)") +
+  theme_minimal() +
+  theme(legend.position = "none")
+
+# CO
+
+ggplot(df_CO_top10, aes(x = State, y = Mean, fill = State)) +
+  geom_boxplot() +
+  labs(title = "Distribution of CO Levels Across States",
+       x = "State",
+       y = "CO Concentration (ppm)") +
+  theme_minimal() +
+  theme(legend.position = "none")
+
+# NO2
+
+ggplot(df_NO2_top10, aes(x = State, y = Mean, fill = State)) +
+  geom_boxplot() +
+  labs(title = "Distribution of NO2 Levels Across States",
+       x = "State",
+       y = "NO2 Concentration (ppb)") +
+  theme_minimal() +
+  theme(legend.position = "none")
+
+# PM10 
+
+ggplot(df_PM10_top10, aes(x = State, y = Mean, fill = State)) +
+  geom_boxplot() +
+  labs(title = "Distribution of PM10 Levels Across States",
+       x = "State",
+       y = "PM10 Concentration (µg/m³)") +
+  theme_minimal() +
+  theme(legend.position = "none")
+
+# SO2
+
+ggplot(df_SO2_top10, aes(x = State, y = Mean, fill = State)) +
+  geom_boxplot() +
+  labs(title = "Distribution of SO2 Levels Across States",
+       x = "State",
+       y = "SO2 Concentration (ppb)") +
+  theme_minimal() +
+  theme(legend.position = "none")
+
+
+```
+
+
+```{r}
+library(dplyr)
+
+# df_generation_monthly
+top_states <- df_generation_monthly %>%
+  group_by(State) %>%
+  summarise(TotalGeneration = sum(NetGeneration)) %>%
+  top_n(10, TotalGeneration) %>%
+  pull(State)
+
+#Time Series Plot for Renewable Energy Generation
+ggplot(df_generation_monthly %>% filter(State %in% top_states), 
+       aes(x = Date, y = NetGeneration, group = State, color = State)) +
+  geom_line() +
+  labs(title = "Renewable Energy Generation Over Time in Top 10 States",
+       x = "Date",
+       y = "Net Generation (MWh)") +
+  theme_minimal()
+
+
+
+```
+
+```{r}
+# Check unique states in both datasets
+unique(df_generation_monthly$State)
+unique(df_pollutant_monthly$State)
+
+```
+
+```{r}
+state_abbreviations <- c(AL = "Alabama", AK = "Alaska", AZ = "Arizona", AR = "Arkansas", CA = "California", 
+                         CO = "Colorado", CT = "Connecticut", DE = "Delaware", FL = "Florida", GA = "Georgia", 
+                         HI = "Hawaii", ID = "Idaho", IL = "Illinois", IN = "Indiana", IA = "Iowa", 
+                         KS = "Kansas", KY = "Kentucky", LA = "Louisiana", ME = "Maine", MD = "Maryland", 
+                         MA = "Massachusetts", MI = "Michigan", MN = "Minnesota", MS = "Mississippi", MO = "Missouri", 
+                         MT = "Montana", NE = "Nebraska", NV = "Nevada", NH = "New Hampshire", NJ = "New Jersey", 
+                         NM = "New Mexico", NY = "New York", NC = "North Carolina", ND = "North Dakota", 
+                         OH = "Ohio", OK = "Oklahoma", OR = "Oregon", PA = "Pennsylvania", RI = "Rhode Island", 
+                         SC = "South Carolina", SD = "South Dakota", TN = "Tennessee", TX = "Texas", UT = "Utah", 
+                         VT = "Vermont", VA = "Virginia", WA = "Washington", WV = "West Virginia", WI = "Wisconsin", 
+                         WY = "Wyoming")
+
+
+df_pollutant_monthly$State <- sapply(df_pollutant_monthly$State, function(x) {
+  name <- state_abbreviations[which(state_abbreviations == x)]
+  if (length(name) == 0) NA else names(name)
+})
+
+
+df_merged_top_states <- merge(df_generation_monthly %>% filter(State %in% top_states), 
+                              df_pollutant_monthly %>% filter(State %in% top_states), 
+                              by = c("State", "Date"))
+
+str(df_merged_top_states)
+
+```
+```{r}
+# Creating a list of unique pollutants in our dataset
+unique_pollutants <- unique(df_merged_top_states$Pollutant)
+
+# Creating a list to store the plots
+scatter_plots <- list()
+
+# Looping through each unique pollutant and creating a scatter plot
+for (pollutant in unique_pollutants) {
+  plot_data <- df_merged_top_states[df_merged_top_states$Pollutant == pollutant, ]
+  
+  plot <- ggplot(plot_data, aes(x = NetGeneration, y = Mean, color = State)) +
+    geom_point() +
+    labs(title = paste("Net Generation vs.", pollutant),
+         x = "Net Generation",
+         y = "Pollutant Concentration",
+         color = "State") +
+    theme_minimal()
+  
+  scatter_plots[[pollutant]] <- plot
+}
+
+# Printing the scatter plots
+scatter_plots
+
+
+```
+
+```{r}
+
+
+
+```
 
 ## Question 1: <insert specific question here and add additional subsections for additional questions below, if needed>
 
