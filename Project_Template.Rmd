@@ -10,11 +10,11 @@
 # Set your working directory
 
 # Load your packages
-install.packages('readxl')
-install.packages('foreign')
-install.packages('sf')
-install.packages('leaflet')
-install.packages('mapview')
+#install.packages('readxl')
+#install.packages('foreign')
+#install.packages('sf')
+#install.packages('leaflet')
+#install.packages('mapview')
 library(readxl)
 library(here)
 library(tidyverse)
