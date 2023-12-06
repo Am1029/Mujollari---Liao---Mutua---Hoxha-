@@ -1,3 +1,8 @@
+---
+output:
+  html_document: default
+  pdf_document: default
+---
 \newpage
 \tableofcontents 
 \newpage
@@ -62,9 +67,28 @@ df_pollutant_monthly$Date <- ymd(df_pollutant_monthly$Date)
 
 
 # Rationale and Research Questions
+Background 
+
+In the context of escalating global environmental challenges, the shift from traditional fossil fuel-based energy sources to renewable energy has become a focal point in efforts to reduce carbon emissions and combat climate change (Kabeyi et. al, 2022). However, the transition's broader environmental impacts, particularly on air quality, remain less explored. This transition is especially relevant given the increasing global energy demand and the need to meet this demand sustainably.
+
+Significance 
+
+Understanding the relationship between renewable energy generation and air quality is crucial. Renewable energy sources like wind and solar are lauded for their lower environmental impact compared to fossil fuels, which are major contributors to air pollution (UCSUSA, 2018). Air pollution is a significant environmental hazard, affecting human health, ecosystems, and the climate. It is responsible for millions of premature deaths annually and contributes to the occurrence of diseases like asthma, heart disease, and lung cancer (National Geographic, 2023). Therefore, assessing how increased renewable energy generation affects air quality indicators is not just an environmental concern but a public health imperative.
+
+Theoretical Context
+
+The hypothesis underlying this research is that an increase in renewable energy generation leads to a reduction in air pollution. This hypothesis is grounded in the understanding that renewable energy sources, unlike fossil fuels, do not emit pollutants like sulfur dioxide, nitrogen oxides, and particulate matter during electricity generation.
 
 
+Research Questions
 
+1: What is the relationship between distributed renewable energy generation and the level of air pollution?
+
+This question aims to investigate the correlation between the rise in renewable energy generation and the concentrations of various air pollutants. It seeks to understand whether regions with higher renewable energy output exhibit lower levels of air pollutants.
+
+2: Among air quality indicators (PM10, PM2.5, CO, NO2, and SO2), which display the most significant response to variations in energy generation?
+
+This question delves deeper into identifying which specific pollutants are most responsive to changes in energy generation types. It is crucial for pinpointing the environmental benefits of renewable energy sources and for policy-making aimed at targeted air pollution reduction.
 \newpage
 
 # Dataset Information
@@ -188,7 +212,7 @@ plot.NO2
 ```
 
 ```{r Time Series, message=FALSE}
-PM
+#PM
 
 ```
 
@@ -288,7 +312,18 @@ ggplot(df_SO2_top10, aes(x = State, y = Mean, fill = State)) +
 
 
 ```
+# Interpretation of the Boxplots
+#it may be redundant, we can decide if we want to keep it or not..
 
+PM2.5 Levels: The distribution of PM2.5 levels varies widely between states. California shows a particularly high range of PM2.5 concentrations with notable outliers, indicating episodes of very poor air quality. It's important to look into the reasons for California's variability, such as wildfires or urban pollution.
+
+CO Levels: CO levels are relatively uniform across the states, with fewer outliers compared to PM2.5. This could indicate a more consistent source of CO pollution, such as traffic, across these states.
+
+NO2 Levels: NO2 levels are somewhat variable, with Illinois showing a higher median concentration. This could be associated with industrial activities or high traffic density.
+
+PM10 Levels: PM10 shows a spread similar to PM2.5, with California again showing high variability and outliers. This suggests common sources of particulate matter affecting both PM10 and PM2.5.
+
+SO2 Levels: The distribution of SO2 is quite tight in most states, except for a few outliers. This pollutant is often associated with industrial processes and the burning of sulfur-containing fuels.
 
 ```{r}
 library(dplyr)
@@ -312,6 +347,9 @@ ggplot(df_generation_monthly %>% filter(State %in% top_states),
 
 
 ```
+# Interpretation 
+
+The line graph above displays the trend of renewable energy generation over time in the top 10 states. We can see that there is a general upward trend in renewable energy generation across all states, indicating increased adoption and capacity over time. California (CA) stands out with a significantly higher generation, especially with a steep increase around 2020. Other states also show growth in renewable energy generation but to varying degrees. For instance, Texas (TX) and Iowa (IA) show notable increases. The variability in generation over time could be influenced by factors like state policies, technological advancements, and investment in renewable energy infrastructure.The overall increasing trend aligns with global efforts to transition to cleaner energy sources to reduce reliance on fossil fuels and combat climate change.
 
 ```{r}
 # Check unique states in both datasets
@@ -374,6 +412,21 @@ scatter_plots
 
 
 ```
+#Interpretation
+
+PM2.5 and Net Generation: There doesn't seem to be a clear relationship between net generation and PM2.5 levels. While some states with higher net generation have lower PM2.5 levels, the data is scattered, suggesting other factors may be at play in determining PM2.5 concentrations.
+
+PM10 and Net Generation: Similar to PM2.5, the PM10 concentrations do not show a clear trend in relation to net generation. There is significant scatter across all levels of net generation.
+
+Sulfur Dioxide (SO2) and Net Generation: The plot for SO2 shows a dense clustering of lower SO2 levels at higher net generation, which might indicate that higher renewable energy generation could be associated with lower SO2 concentrations.
+
+Nitrogen Dioxide (NO2) and Net Generation: The scatter plot for NO2 presents a wide distribution of pollutant concentrations across the net generation axis, indicating no strong correlation between the two.
+
+Carbon Monoxide (CO) and Net Generation: The CO levels are spread across the generation axis, but there is a noticeable cluster of lower CO concentrations at higher levels of net generation.
+
+So, in conclusion, upon reviewing the scatter plots for PM2.5, PM10, NO2, and SO2 in relation to renewable energy generation, it is the scatter plots for Sulfur Dioxide (SO2) and Carbon Monoxide (CO) that show some indication of a relationship. For SO2, higher levels of renewable energy generation seem to correspond with a clustering of lower pollutant concentrations. Similarly, the scatter plot for CO also shows a clustering of data points towards lower CO levels as net generation increases. These observations suggest an inverse relationship where increased renewable energy generation could be associated with decreased emissions of SO2 and CO, which are pollutants typically associated with the combustion of fossil fuels.
+
+
 
 ```{r}
 
@@ -381,10 +434,13 @@ scatter_plots
 
 ```
 
-## Question 1: <insert specific question here and add additional subsections for additional questions below, if needed>
+## Question 1: 
+What is the relationship between distributed renewable energy generation and the level of air pollution?
+
+
 
 ## Question 2: 
-
+Among air quality indicators (PM10, PM2.5, CO, NO2, and SO2), which display the most significant response to variations in energy generation?
 
 
 
@@ -396,4 +452,8 @@ scatter_plots
 \newpage
 
 # References
-<add references here if relevant, otherwise delete this section> 
+Kabeyi, Moses Jeremiah Barasa, and Oludolapo Akanni Olanrewaju. ‘Sustainable Energy Transition for Renewable and Low Carbon Grid Electricity Generation and Supply’. Frontiers in Energy Research, vol. 9, 2022. Frontiers, https://www.frontiersin.org/articles/10.3389/fenrg.2021.743114.
+
+Environmental Impacts of Renewable Energy Technologies | Union of Concerned Scientists. https://www.ucsusa.org/resources/environmental-impacts-renewable-energy-technologies. Accessed 6 Dec. 2023.
+
+Air Pollution. https://education.nationalgeographic.org/resource/air-pollution. Accessed 6 Dec. 2023.
