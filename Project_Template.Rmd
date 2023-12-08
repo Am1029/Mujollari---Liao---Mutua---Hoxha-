@@ -11,7 +11,7 @@ output:
 \listoffigures 
 \newpage
 
-```{r Setup, include=FALSE}
+```{r Setup, warning=FALSE, include=FALSE}
 # Set your working directory
 
 # Load your packages
@@ -29,7 +29,26 @@ library(dplyr)
 library(tidyverse, quietly = TRUE)
 library(sf)
 library(leaflet)
-library(mapview); mapviewOptions(fgb = FALSE)
+library(mapview); 
+mapviewOptions(fgb = FALSE, basemaps.color.shuffle = FALSE)
+library(rvest)
+#install.packages("httr")
+library(httr)
+#install.packages("jsonlite") 
+library(jsonlite) 
+#install.packages("gganimate")
+library(gganimate)
+#install.packages('transformr')
+library(transformr)
+#install.packages('animation')
+library(animation)
+#install.packages('gifski')
+library(gifski)
+#install.packages('gghighlight')
+library(gghighlight)
+#install.packages('magick')
+library(magick)
+
 
 # Set your ggplot theme
 theme_set(theme_minimal())
@@ -93,176 +112,510 @@ This question delves deeper into identifying which specific pollutants are most 
 
 # Dataset Information
 
+The exploratory analysis required the combination of air quality and power plant datasets. Air quality data in the analysis was obtained from the United States Environmental Protection Agency while power plant data was obtained from the U.S. Energy Information Administration. The sample years were the two decades namely 2001 - 2021.
+
+Table: Dataset Information for the Sample Period 2001 - 2021
+
+Dataset  | Source  | Variables Used
+-------------: | :------------- | :-------------
+Air Quality Summary Statistics by Criteria Pollutants and Location  | EPA Air Quality System (AQS)  | Monthly Mean Ozone and PM2.5
+Power Plant Generator Level Capacities and Locations  | EIA Form EIA-860  | Annual Installed Generation Capacity by Fuel Type
+Power Plant Monthly Energy Generation  | EIA Form EIA-923  | Monthly Net Generation by Fuel Type
 
 
 \newpage
 
-# Exploratory Analysis 
-```{r Visualization: Generation}
-top_states_renewables2022 <- df_generation_monthly %>% 
-  filter(Year == 2022) %>% 
-  group_by(State) %>% 
-  summarise(NetGeneration = sum(NetGeneration)) %>% 
-  mutate(Rank = rank(-NetGeneration)) %>% 
-  filter(Rank %in% c(1:10))
+# Exploratory Analysis
+
+We began our exploratory analysis by examining if and how solar and wind energy generating capacity, net generation and air quality has changed over time in the contiguous United States. To begin to visualize this, we used the wrangled power plant to visualize both quantitatively and spatially the change in total solar and wind plant installed capacity over the period 2001 - 2021. From the exploratory line plot, we note the three states with the highest cumulative installed capacity include California, Texas and Iowa which have significant growth in installed capacity compared to other states. To visualize the energy generation associated with these installations, we also plotted the annual energy generation from solar and wind over a similar period and noted that the states with the largest installed capacity are also the states with the highest annual energy generation from these renewable sources.
+
+```{r Visualization: CapacityOverTime, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold", out.width="50%"}
+#Plotting out trend for top 10 states
+top_states_capacity2021 <- df_plantcapacities_locations %>% 
+  filter(YEAR == 2021) %>% 
+  group_by(STATE) %>% 
+  summarise(CAPACITY = sum(CAPACITY)) %>% 
+  mutate(Rank = rank(-CAPACITY)) %>% 
+  filter(Rank %in% c(1:3))
+
+df_plantcapacities_locations %>%
+  group_by(STATE, YEAR) %>% 
+  summarise(CAPACITY = sum(CAPACITY)) %>%
+  ggplot(aes(x=YEAR,
+             y=CAPACITY,
+             color=STATE)) +
+  geom_line() +
+  labs(x="Year",
+       y="Installed Capacity (MW)",
+       title="Annual Installed Generation Capacity: Solar and Wind (MW)") +
+  scale_color_viridis_d() +
+  gghighlight(max(CAPACITY)>12000)
 
 #visualizing renewable energy generation over time
 
 #Summarizing monthly data into annual data
 df_generation_annual <- df_generation_monthly %>% 
-  group_by(Year) %>% 
+  group_by(State, Year) %>% 
   summarise(NetGeneration = sum(NetGeneration))
 
-#Plotting out trend for top 10 states
-plot.MonthlyGeneration <- df_generation_monthly %>%
-  filter(State %in% top_states_renewables2022$State) %>% 
+df_generation_annual %>% 
+  ggplot(aes(x=Year,
+             y=NetGeneration,
+             color=State)) +
+  geom_line() +
+  gghighlight(max(NetGeneration)>40000000) +
+  labs(x="Year",
+       y="Annual Energy Generation (MWh)",
+       title="Annual Solar and Wind Energy Generation over time (MWh)") +
+  scale_color_viridis_d()
+
+
+top_states_renewables2022 <- df_generation_monthly %>% 
+  filter(Year == 2022) %>% 
+  group_by(State) %>% 
+  summarise(NetGeneration = sum(NetGeneration)) %>% 
+  mutate(Rank = rank(-NetGeneration)) %>% 
+  filter(Rank %in% c(1:3))
+
+#Plotting out monthly trend for top 3 states
+df_generation_monthly %>%
   ggplot(aes(x=Date,
              y=NetGeneration,
              color=State)) +
   geom_line() +
+  gghighlight(max(NetGeneration)>4500000) +
   labs(x="Date",
        y="Monthly Energy Generation (MWh)",
-       title="Monthly Renewable Energy Generation per State (MWh)")
+       title="Monthly Renewable Energy Generation per State (MWh)") +
+  scale_color_viridis_d()
 
-print(plot.MonthlyGeneration)
+#plot.CapacityOverTime
+#plot.AnnualGeneration
+#plot.MonthlyGeneration
+```
+The change in installed solar and wind plants can be also be visualized spatially across the contiguous United States as illustrated below. From the map, we note that the number of installed solar and wind plants increased significantly over the two decades from 2001 - 2021.
 
-plot.AnnualGeneration <- df_generation_annual %>% 
-  ggplot(aes(x=Year,
-             y=NetGeneration)) +
-  geom_line() +
-  labs(x="Year",
-       y="Annual Energy Generation (MWh)",
-       title="Annual Renewable Energy Generation over time (MWh)")
+```{r Visualization: ExploratorySpatial, echo=FALSE, message=FALSE, warning=FALSE}
+df_plantcapacities_locations_sf_2001 <- df_plantcapacities_locations %>%
+  na.omit() %>%
+  st_as_sf(coords = c('LONG','LAT'), crs=4269) %>% 
+  filter(YEAR == 2001)
+df_plantcapacities_locations_sf_2021 <- df_plantcapacities_locations %>%
+  na.omit() %>%
+  st_as_sf(coords = c('LONG','LAT'), crs=4269) %>% 
+  filter(YEAR == 2021)
 
-print(plot.AnnualGeneration)
+mapview(df_plantcapacities_locations_sf_2001,
+        cex = 'CAPACITY',
+        col.regions = '#2b83ba',
+        layer.name = 'Solar and Wind Plant Locations in 2001') |
+mapview(df_plantcapacities_locations_sf_2021,
+        cex = 'CAPACITY',
+        col.regions = '#f7fcb9',
+        layer.name = 'Solar and Wind Plant Locations in 2021')
+```
+Narrowing down on the top three states with the highest growth in installed capacity, we used ggplot and gganimate to visualize the increase and distribution of plants within the state as shown below:
+
+```{r Visualization: California, echo=FALSE, message=FALSE, warning=FALSE}
+state.sf.CA<- st_read(here('Data/Spatial/cb_2018_us_county_20m.shp')) %>% 
+  filter(STATEFP == '06')
+
+state.sf.TX<- st_read(here('Data/Spatial/cb_2018_us_county_20m.shp')) %>% 
+  filter(STATEFP == '48')
+
+state.sf.IA<- st_read(here('Data/Spatial/cb_2018_us_county_20m.shp')) %>% 
+  filter(STATEFP == '19')
+
+df_plantcapacities_locations_sf_CA <- df_plantcapacities_locations %>%
+  na.omit() %>%
+  st_as_sf(coords = c('LONG','LAT'), crs=4269) %>% 
+  mutate(Date = ymd(YEAR, truncated = 2L)) %>% 
+  filter(STATE == 'CA')
+
+animated_map_CA <- ggplot() +
+  geom_sf(data=state.sf.CA, fill='#addd8e') +
+  geom_sf(data=df_plantcapacities_locations_sf_CA, color = '#f7fcb9', aes(size = CAPACITY)) +
+  labs(title = 'Year: {frame_time}',
+       subtitle = "Solar and Wind Installed Capacity") +
+  coord_sf(crs = 4269, datum = NA) +
+  transition_time(YEAR) +
+  enter_fade() +
+  exit_fade() +
+  shadow_mark()
+
+df_plantcapacities_locations_sf_TX <- df_plantcapacities_locations %>%
+  na.omit() %>%
+  st_as_sf(coords = c('LONG','LAT'), crs=4269) %>% 
+  mutate(Date = ymd(YEAR, truncated = 2L)) %>% 
+  filter(STATE == 'TX')
+
+animated_map_TX <- ggplot() +
+  geom_sf(data=state.sf.TX, fill='#addd8e') +
+  geom_sf(data=df_plantcapacities_locations_sf_TX, color = '#f7fcb9', aes(size = CAPACITY)) +
+  labs(title = 'Year: {frame_time}',
+       subtitle = "Solar and Wind Installed Capacity") +
+  coord_sf(crs = 4269, datum = NA) +
+  transition_time(YEAR) +
+  enter_fade() +
+  exit_fade() +
+  shadow_mark()
+
+df_plantcapacities_locations_sf_IA <- df_plantcapacities_locations %>%
+  na.omit() %>%
+  st_as_sf(coords = c('LONG','LAT'), crs=4269) %>% 
+  mutate(Date = ymd(YEAR, truncated = 2L)) %>% 
+  filter(STATE == 'IA')
+
+animated_map_IA <- ggplot() +
+  geom_sf(data=state.sf.IA, fill='#addd8e') +
+  geom_sf(data=df_plantcapacities_locations_sf_IA, color = '#f7fcb9', aes(size = CAPACITY)) +
+  labs(title = 'Year: {frame_time}',
+       subtitle = "Solar and Wind Installed Capacity") +
+  coord_sf(crs = 4269, datum = NA) +
+  transition_time(YEAR) +
+  enter_fade() +
+  exit_fade() +
+  shadow_mark()
+
+#CA_gif <- animate(animated_map_CA, renderer = gifski_renderer(), fps = 20, duration = 30)
+#TX_gif <- animate(animated_map_TX, renderer = gifski_renderer(), fps = 20, duration = 30)
+#IA_gif <- animate(animated_map_IA, renderer = gifski_renderer(), fps = 20, duration = 30)
+
+CA_gif <- animate(animated_map_CA, width = 240, height = 240)
+TX_gif <- animate(animated_map_TX, width = 240, height = 240)
+IA_gif <- animate(animated_map_IA, width = 240, height = 240)
+
+CA_mgif <- image_read(CA_gif)
+TX_mgif <- image_read(TX_gif)
+IA_mgif <- image_read(IA_gif)
+
+states_gif <- image_append(c(CA_mgif[1], TX_mgif[1], IA_mgif[1]))
+
+for(i in 2:96) {
+  combined <- image_append(c(CA_mgif[i], TX_mgif[i], IA_mgif[i]))
+  states_gif <- c(states_gif, combined)
+}
+
+states_gif
+
 ```
 
-```{r Visualization: Pollutant CO}
-# Observe air quality variation among the top 10 states in renewable energy generation
+After establishing that installed capacity of solar and wind plants has increased over time in the United States and particularly in California, Texas and Iowa, we began to explore air quality data to establish the changes in the concentrations of key criteria pollutants over time. To facilitate this, we visualized the wrangled air quality data over time for key pollutants related to fossil fuel generation including SO2, NOX, and PM2.5. Based on the outputs shown below, it can be observed that the amounts of pollutants measured has been trending downwards over time.
+
+```{r Visualization: Pollutant CO, echo=FALSE, message=FALSE, warning=FALSE}
+# Observe air quality variation among the top 3 states in renewable energy generation
 top_states_renewables2022$State
 unique(df_pollutant_monthly$State)
 
 df_pollutant_location<-merge(df_pollutant_monthly,df_state,by='State') #add state abbreviation
 
-df_pollutant_top10<-df_pollutant_location %>%
+df_pollutant_top3<-df_pollutant_location %>%
   filter(Abbreviation %in% top_states_renewables2022$State) %>%
   arrange(Date)
 
 #confirm the selection is correct 
 top_states_renewables2022$State
-unique(df_pollutant_top10$Abbreviation)
+unique(df_pollutant_top3$Abbreviation)
 
-unique(df_pollutant_top10$Pollutant)
+unique(df_pollutant_top3$Pollutant)
 #CO
-df_CO_top10<-df_pollutant_top10 %>%
-  filter(Pollutant=="Carbon monoxide")
+#df_CO_top10<-df_pollutant_top10 %>%
+#  filter(Pollutant=="Carbon monoxide")
 
 #PM2.5
-df_PM2.5_top10<-df_pollutant_top10 %>%
+df_PM2.5_top3<-df_pollutant_top3 %>%
   filter(Pollutant=="PM2.5 - Local Conditions")
 
 #SO2
-df_SO2_top10<-df_pollutant_top10 %>%
+df_SO2_top3<-df_pollutant_top3 %>%
   filter(Pollutant=="Sulfur dioxide")
 
 #NO2
-df_NO2_top10<-df_pollutant_top10 %>%
+df_NO2_top3<-df_pollutant_top3 %>%
   filter(Pollutant=="Nitrogen dioxide (NO2)")
 
 #PM10
-df_PM10_top10<-df_pollutant_top10 %>%
-  filter(Pollutant=="PM10 Total 0-10um STP")
+#df_PM10_top10<-df_pollutant_top10 %>%
+#  filter(Pollutant=="PM10 Total 0-10um STP")
 
 #plotting trend for top 10 states
-plot.PM10<-ggplot(df_PM10_top10, aes(x =Date, y = Mean, color=State)) +
-  geom_line()+
-  labs(x="Date",y="mg/m\u00B3")+
-  ggtitle("PM10 Concentration")+
-  theme(plot.title = element_text(hjust = 0.5))
-plot.PM10
+#plot.PM10<-ggplot(df_PM10_top3, aes(x =Date, y = Mean, color=State)) +
+#  geom_line()+
+#  labs(x="Date",y="mg/m\u00B3")+
+#  ggtitle("PM10 Concentration")+
+#  theme(plot.title = element_text(hjust = 0.5))
+#plot.PM10
 
-plot.PM2.5<-ggplot(df_PM2.5_top10, aes(x =Date, y = Mean, color=State)) +
+ggplot(df_PM2.5_top3, aes(x =Date, y = Mean, color=State)) +
   geom_line()+
   labs(x="Date",y="mg/m\u00B3")+
   ggtitle("PM2.5 Concentration")+
   theme(plot.title = element_text(hjust = 0.5))
-plot.PM2.5
+#plot.PM2.5
 
-plot.CO<-ggplot(df_CO_top10, aes(x =Date, y = Mean, color=State)) +
-  geom_line()+
-  labs(x="Date",y="Parts per million")+
-  ggtitle("Carbon Monoxide Concentration")+
-  theme(plot.title = element_text(hjust = 0.5))
-plot.CO
+#plot.CO<-ggplot(df_CO_top3, aes(x =Date, y = Mean, color=State)) +
+#  geom_line()+
+#  labs(x="Date",y="Parts per million")+
+#  ggtitle("Carbon Monoxide Concentration")+
+#  theme(plot.title = element_text(hjust = 0.5))
+#plot.CO
 
-plot.SO2<-ggplot(df_SO2_top10, aes(x =Date, y = Mean, color=State)) +
+ggplot(df_SO2_top3, aes(x =Date, y = Mean, color=State)) +
   geom_line()+
   labs(x="Date",y="Parts per million")+
   ggtitle("Sulfur Dioxide Concentration")+
   theme(plot.title = element_text(hjust = 0.5))
-plot.SO2
+#plot.SO2
 
-plot.NO2<-ggplot(df_NO2_top10, aes(x =Date, y = Mean, color=State)) +
+ggplot(df_NO2_top3, aes(x =Date, y = Mean, color=State)) +
   geom_line()+
   labs(x="Date",y="Parts per billion")+
   ggtitle("Nitrogen Dioxide Concentration")+
   theme(plot.title = element_text(hjust = 0.5))
-plot.NO2
+#plot.NO2
 
 ```
-
-```{r Time Series, message=FALSE}
-#PM
-
-```
-
-```{r Visualization: Spatial}
-
-#Reading power plant location data into spatial dataframe
-df_plantcapacities_locations_sf <- df_plantcapacities_locations %>%
-  na.omit() %>% 
-  filter(STATE == 'TX') %>% 
-  st_as_sf(coords = c('LONG','LAT'), crs=4269)
-
-mapview(df_plantcapacities_locations_sf,
-        zcol = 'FUEL',
-        cex = 'CAPACITY',
-        layer.name = 'Renewable Energy Plant Locations in Texas')
-
-
-#counties_sf<- st_read(here('Data/Spatial/cb_2018_us_county_20m.shp')) %>% 
-#  filter(STATEFP == 48)
-
-#colnames(counties_sf)
-
-#
-#st_crs(counties_sf) 
-
-
-#
-#nrow(counties_sf)
-
-#Reveal the extent of this dataset via the st_bbox() function
-#st_bbox(counties_sf)
-
-#View the data
-#head(counties_sf)
-
-#mapView(counties_sf, zcol = "AWATER")
-
-```
-
-
 \newpage
 
 # Analysis
+## Question 1: 
+What is the relationship between distributed renewable energy generation and the level of air pollution?
+
+We can formulate a null and alternative hypothesis for the above research question as follows:
+H0: There is no change in recorded air quality with an increase in renewable energy generation in the states of California, Texas and Iowa over the period 2001 - 2021.
+Ha: There is a change in recorded air quality with an increase in renewable energy generation in the states of California, Texas and Iowa over the period 2001 - 2021.
+
+To evaluate this hypothesis, we generated a plot of Mean PM2.5 measured against net monthly solar and wind generation for all three states.
+
+```{r GLMPM25, echo=FALSE, message=FALSE, warning=FALSE}
+
+df_CA.energy.data <- df_generation_monthly %>% 
+  filter(State == 'CA') %>%  #Filtering out California
+  filter(Year  %in% c(2001:2021))
+
+df_CA.energy.air.data.PM2.5 <- df_pollutant_top3 %>% 
+  filter(Abbreviation == 'CA') %>% #Filtering out California
+  filter(Pollutant=="PM2.5 - Local Conditions") %>% 
+  select(Date, Mean, Abbreviation) %>% #Filtering out only the columns:`Date`, `Mean`, `Abbreviation`
+  rename(MeanPM25 = Mean, State = Abbreviation) %>%
+  left_join(df_CA.energy.data, by = c('Date', 'State'))
+  
+#Plotting the regression
+  ggplot(df_CA.energy.air.data.PM2.5, aes(x = NetGeneration, y = MeanPM25)) +
+  geom_point() +
+  geom_smooth(method = "lm", color = "red") +
+  labs(x="Net Generation (MWh)", 
+       y="Mean PM2.5 (µg/m³)",
+       title="Mean PM2.5 (µg/m³) by Net Generation (MWh) in California")
+
+df_TX.energy.data <- df_generation_monthly %>% 
+  filter(State == 'TX') %>%  #Filtering out Texas
+  filter(Year  %in% c(2001:2021))
+
+df_TX.energy.air.data.PM2.5 <- df_pollutant_top3 %>% 
+  filter(Abbreviation == 'TX') %>% #Filtering out Texas
+  filter(Pollutant=="PM2.5 - Local Conditions") %>% 
+  select(Date, Mean, Abbreviation) %>% #Filtering out only the columns:`Date`, `Mean`, `Abbreviation`
+  rename(MeanPM25 = Mean, State = Abbreviation) %>%
+  left_join(df_TX.energy.data, by = c('Date', 'State'))
+  
+#Plotting the regression
+  ggplot(df_TX.energy.air.data.PM2.5, aes(x = NetGeneration, y = MeanPM25)) +
+  geom_point() +
+  geom_smooth(method = "lm", color = "red") +
+  labs(x="Net Generation (MWh)", 
+       y="Mean PM2.5 (µg/m³)",
+       title="Mean PM2.5 (µg/m³) by Net Generation (MWh) in Texas")
+
+
+df_IA.energy.data <- df_generation_monthly %>% 
+  filter(State == 'IA') %>%  #Filtering out Iowa
+  filter(Year  %in% c(2001:2021))
+
+df_IA.energy.air.data.PM2.5 <- df_pollutant_top3 %>% 
+  filter(Abbreviation == 'IA') %>% #Filtering out Iowa
+  filter(Pollutant=="PM2.5 - Local Conditions") %>% 
+  select(Date, Mean, Abbreviation) %>% #Filtering out only the columns:`Date`, `Mean`, `Abbreviation`
+  rename(MeanPM25 = Mean, State = Abbreviation) %>%
+  left_join(df_IA.energy.data, by = c('Date', 'State'))
+  
+#Plotting the regression
+  ggplot(df_IA.energy.air.data.PM2.5, aes(x = NetGeneration, y = MeanPM25)) +
+  geom_point() +
+  geom_smooth(method = "lm", color = "red") +
+  labs(x="Net Generation (MWh)", 
+       y="Mean PM2.5 (µg/m³)",
+       title="Mean PM2.5 (µg/m³) by Net Generation (MWh) in Iowa")
+
+```
+```{r GLMSO2, echo=FALSE, message=FALSE, warning=FALSE}
+
+df_CA.energy.air.data.SO2 <- df_pollutant_top3 %>% 
+  filter(Abbreviation == 'CA') %>% #Filtering out California
+  filter(Pollutant=="Sulfur dioxide") %>% 
+  select(Date, Mean, Abbreviation) %>% #Filtering out only the columns:`Date`, `Mean`, `Abbreviation`
+  rename(MeanSO2 = Mean, State = Abbreviation) %>%
+  left_join(df_CA.energy.data, by = c('Date', 'State'))
+  
+#Plotting the regression
+  ggplot(df_CA.energy.air.data.SO2, aes(x = NetGeneration, y = MeanSO2)) +
+  geom_point() +
+  geom_smooth(method = "lm", color = "red") +
+  labs(x="Net Generation (MWh)", 
+       y="SO2 Concentration (ppb)",
+       title="SO2 Concentration (ppb) by Net Generation (MWh) in California")
+
+df_TX.energy.air.data.SO2 <- df_pollutant_top3 %>% 
+  filter(Abbreviation == 'TX') %>% #Filtering out Texas
+  filter(Pollutant=="Sulfur dioxide") %>% 
+  select(Date, Mean, Abbreviation) %>% #Filtering out only the columns:`Date`, `Mean`, `Abbreviation`
+  rename(MeanSO2 = Mean, State = Abbreviation) %>%
+  left_join(df_TX.energy.data, by = c('Date', 'State'))
+  
+#Plotting the regression
+  ggplot(df_TX.energy.air.data.SO2, aes(x = NetGeneration, y = MeanSO2)) +
+  geom_point() +
+  geom_smooth(method = "lm", color = "red") +
+  labs(x="Net Generation (MWh)", 
+       y="SO2 Concentration (ppb)",
+       title="SO2 Concentration (ppb) by Net Generation (MWh) in Texas")
+
+
+df_IA.energy.air.data.SO2 <- df_pollutant_top3 %>% 
+  filter(Abbreviation == 'IA') %>% #Filtering out Iowa
+  filter(Pollutant=="Sulfur dioxide") %>% 
+  select(Date, Mean, Abbreviation) %>% #Filtering out only the columns:`Date`, `Mean`, `Abbreviation`
+  rename(MeanSO2 = Mean, State = Abbreviation) %>%
+  left_join(df_IA.energy.data, by = c('Date', 'State'))
+  
+#Plotting the regression
+  ggplot(df_IA.energy.air.data.SO2, aes(x = NetGeneration, y = MeanSO2)) +
+  geom_point() +
+  geom_smooth(method = "lm", color = "red") +
+  labs(x="Net Generation (MWh)", 
+       y="SO2 Concentration (ppb)",
+       title="SO2 Concentration (ppb) by Net Generation (MWh) in Iowa")
+
+```
+
+```{r GLMNOX, echo=FALSE, message=FALSE, warning=FALSE}
+
+df_CA.energy.air.data.NOX <- df_pollutant_top3 %>% 
+  filter(Abbreviation == 'CA') %>% #Filtering out California
+  filter(Pollutant=="Nitrogen dioxide (NO2)") %>% 
+  select(Date, Mean, Abbreviation) %>% #Filtering out only the columns:`Date`, `Mean`, `Abbreviation`
+  rename(MeanNO2 = Mean, State = Abbreviation) %>%
+  left_join(df_CA.energy.data, by = c('Date', 'State'))
+  
+#Plotting the regression
+  ggplot(df_CA.energy.air.data.NOX, aes(x = NetGeneration, y = MeanNO2)) +
+  geom_point() +
+  geom_smooth(method = "lm", color = "red") +
+  labs(x="Net Generation (MWh)", 
+       y="Nitrogen Dioxide Concentration",
+       title="Nitrogen Dioxide Concentration by Net Generation (MWh) in California")
+
+
+df_TX.energy.air.data.NOX <- df_pollutant_top3 %>% 
+  filter(Abbreviation == 'TX') %>% #Filtering out Texas
+  filter(Pollutant=="Nitrogen dioxide (NO2)") %>% 
+  select(Date, Mean, Abbreviation) %>% #Filtering out only the columns:`Date`, `Mean`, `Abbreviation`
+  rename(MeanNO2 = Mean, State = Abbreviation) %>%
+  left_join(df_TX.energy.data, by = c('Date', 'State'))
+  
+#Plotting the regression
+  ggplot(df_TX.energy.air.data.NOX, aes(x = NetGeneration, y = MeanNO2)) +
+  geom_point() +
+  geom_smooth(method = "lm", color = "red") +
+  labs(x="Net Generation (MWh)", 
+       y="Nitrogen Dioxide Concentration",
+       title="Nitrogen Dioxide Concentration by Net Generation (MWh) in Texas")
+
+df_IA.energy.air.data.NOX <- df_pollutant_top3 %>% 
+  filter(Abbreviation == 'IA') %>% #Filtering out Iowa
+  filter(Pollutant=="Nitrogen dioxide (NO2)") %>% 
+  select(Date, Mean, Abbreviation) %>% #Filtering out only the columns:`Date`, `Mean`, `Abbreviation`
+  rename(MeanNO2 = Mean, State = Abbreviation) %>%
+  left_join(df_IA.energy.data, by = c('Date', 'State'))
+  
+#Plotting the regression
+  ggplot(df_IA.energy.air.data.NOX, aes(x = NetGeneration, y = MeanNO2)) +
+  geom_point() +
+  geom_smooth(method = "lm", color = "red") +
+  labs(x="Net Generation (MWh)", 
+       y="Nitrogen Dioxide Concentration (µg/m³)",
+       title="Nitrogen Dioxide Concentration by Net Generation (MWh) in Iowa")
+
+```
+The figures above suggest that the measured value of the pollutants has an inverse relationship or negative correlation with net generation from solar. This implies that the higher the amount of energy generated from wind and solar, the lower the amount of the three criteria pollutants. To investigate this further, we performed a simple linear regression as outlined below:
+
+```{r SimpleLinearRegression, echo=FALSE, message=FALSE, warning=FALSE}
+PM25.CA.regression <- lm(
+  data = df_CA.energy.air.data.PM2.5,
+  MeanPM25 ~ NetGeneration)
+summary(PM25.CA.regression)
+
+PM25.TX.regression <- lm(
+  data = df_TX.energy.air.data.PM2.5,
+  MeanPM25 ~ NetGeneration)
+summary(PM25.TX.regression)
+
+PM25.IA.regression <- lm(
+  data = df_IA.energy.air.data.PM2.5,
+  MeanPM25 ~ NetGeneration)
+summary(PM25.IA.regression)
+
+SO2.CA.regression <- lm(
+  data = df_CA.energy.air.data.SO2,
+  MeanSO2 ~ NetGeneration)
+summary(SO2.CA.regression)
+
+SO2.TX.regression <- lm(
+  data = df_TX.energy.air.data.SO2,
+  MeanSO2 ~ NetGeneration)
+summary(SO2.TX.regression)
+
+SO2.IA.regression <- lm(
+  data = df_IA.energy.air.data.SO2,
+  MeanSO2 ~ NetGeneration)
+summary(SO2.IA.regression)
+
+NOX.CA.regression <- lm(
+  data = df_CA.energy.air.data.NOX,
+  MeanNO2 ~ NetGeneration)
+summary(NOX.CA.regression)
+
+NOX.TX.regression <- lm(
+  data = df_TX.energy.air.data.NOX,
+  MeanNO2 ~ NetGeneration)
+summary(NOX.TX.regression)
+
+NOX.IA.regression <- lm(
+  data = df_IA.energy.air.data.NOX,
+  MeanNO2 ~ NetGeneration)
+summary(NOX.IA.regression)
+
+
+```
 
 ```{r}
+airQualityAIC <- lm(data = df_CA.energy.air.data.PM2.5,
+                     MeanPM25 ~ Month + Year + NetGeneration)
+
+#Choosing a model by AIC in a stepwise algorithm
+step(airQualityAIC)
+```
+
+
+
+```{r Boxplots, echo=FALSE, message=FALSE, warning=FALSE}
 #Box Plot for Comparing Distributions of a Single Pollutant Across Multiple States:
 
 
 # PM2.5
-ggplot(df_PM2.5_top10, aes(x = State, y = Mean, fill = State)) +
+ggplot(df_PM2.5_top3, aes(x = State,
+                          y = Mean,
+                          color = State)) +
   geom_boxplot() +
   labs(title = "Distribution of PM2.5 Levels Across States",
        x = "State",
@@ -272,17 +625,17 @@ ggplot(df_PM2.5_top10, aes(x = State, y = Mean, fill = State)) +
 
 # CO
 
-ggplot(df_CO_top10, aes(x = State, y = Mean, fill = State)) +
-  geom_boxplot() +
-  labs(title = "Distribution of CO Levels Across States",
-       x = "State",
-       y = "CO Concentration (ppm)") +
-  theme_minimal() +
-  theme(legend.position = "none")
+#ggplot(df_CO_top3, aes(x = State, y = Mean, fill = State)) +
+#  geom_boxplot() +
+#  labs(title = "Distribution of CO Levels Across States",
+#       x = "State",
+#       y = "CO Concentration (ppm)") +
+#  theme_minimal() +
+#  theme(legend.position = "none")
 
 # NO2
 
-ggplot(df_NO2_top10, aes(x = State, y = Mean, fill = State)) +
+ggplot(df_NO2_top3, aes(x = State, y = Mean, fill = State)) +
   geom_boxplot() +
   labs(title = "Distribution of NO2 Levels Across States",
        x = "State",
@@ -292,17 +645,17 @@ ggplot(df_NO2_top10, aes(x = State, y = Mean, fill = State)) +
 
 # PM10 
 
-ggplot(df_PM10_top10, aes(x = State, y = Mean, fill = State)) +
-  geom_boxplot() +
-  labs(title = "Distribution of PM10 Levels Across States",
-       x = "State",
-       y = "PM10 Concentration (µg/m³)") +
-  theme_minimal() +
-  theme(legend.position = "none")
+#ggplot(df_PM10_top3, aes(x = State, y = Mean, fill = State)) +
+#  geom_boxplot() +
+#  labs(title = "Distribution of PM10 Levels Across States",
+#       x = "State",
+#       y = "PM10 Concentration (µg/m³)") +
+#  theme_minimal() +
+#  theme(legend.position = "none")
 
 # SO2
 
-ggplot(df_SO2_top10, aes(x = State, y = Mean, fill = State)) +
+ggplot(df_SO2_top3, aes(x = State, y = Mean, fill = State)) +
   geom_boxplot() +
   labs(title = "Distribution of SO2 Levels Across States",
        x = "State",
@@ -347,6 +700,13 @@ ggplot(df_generation_monthly %>% filter(State %in% top_states),
 
 
 ```
+
+```{r Time Series, message=FALSE}
+#PM
+
+```
+
+
 # Interpretation 
 
 The line graph above displays the trend of renewable energy generation over time in the top 10 states. We can see that there is a general upward trend in renewable energy generation across all states, indicating increased adoption and capacity over time. California (CA) stands out with a significantly higher generation, especially with a steep increase around 2020. Other states also show growth in renewable energy generation but to varying degrees. For instance, Texas (TX) and Iowa (IA) show notable increases. The variability in generation over time could be influenced by factors like state policies, technological advancements, and investment in renewable energy infrastructure.The overall increasing trend aligns with global efforts to transition to cleaner energy sources to reduce reliance on fossil fuels and combat climate change.
