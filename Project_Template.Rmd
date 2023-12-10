@@ -1,7 +1,7 @@
 ---
-output:
-  html_document: default
-  pdf_document: default
+title: "An Exploration of the Relationship between Air Quality and Solar & Wind Energy Generation in the United States"
+author: "Mujollari A., Liao I., Mutua Mulu B., Hoxha L."
+output: html_document
 ---
 \newpage
 \tableofcontents 
@@ -48,6 +48,7 @@ library(gifski)
 library(gghighlight)
 #install.packages('magick')
 library(magick)
+library(janitor)
 
 
 # Set your ggplot theme
@@ -86,20 +87,20 @@ df_pollutant_monthly$Date <- ymd(df_pollutant_monthly$Date)
 
 
 # Rationale and Research Questions
-Background 
+## Background 
 
 In the context of escalating global environmental challenges, the shift from traditional fossil fuel-based energy sources to renewable energy has become a focal point in efforts to reduce carbon emissions and combat climate change (Kabeyi et. al, 2022). However, the transition's broader environmental impacts, particularly on air quality, remain less explored. This transition is especially relevant given the increasing global energy demand and the need to meet this demand sustainably.
 
-Significance 
+## Significance 
 
 Understanding the relationship between renewable energy generation and air quality is crucial. Renewable energy sources like wind and solar are lauded for their lower environmental impact compared to fossil fuels, which are major contributors to air pollution (UCSUSA, 2018). Air pollution is a significant environmental hazard, affecting human health, ecosystems, and the climate. It is responsible for millions of premature deaths annually and contributes to the occurrence of diseases like asthma, heart disease, and lung cancer (National Geographic, 2023). Therefore, assessing how increased renewable energy generation affects air quality indicators is not just an environmental concern but a public health imperative.
 
-Theoretical Context
+## Theoretical Context
 
 The hypothesis underlying this research is that an increase in renewable energy generation leads to a reduction in air pollution. This hypothesis is grounded in the understanding that renewable energy sources, unlike fossil fuels, do not emit pollutants like sulfur dioxide, nitrogen oxides, and particulate matter during electricity generation.
 
 
-Research Questions
+## Research Questions
 
 1: What is the relationship between distributed renewable energy generation and the level of air pollution?
 
@@ -193,6 +194,7 @@ df_generation_monthly %>%
 #plot.AnnualGeneration
 #plot.MonthlyGeneration
 ```
+  
 The change in installed solar and wind plants can be also be visualized spatially across the contiguous United States as illustrated below. From the map, we note that the number of installed solar and wind plants increased significantly over the two decades from 2001 - 2021.
 
 ```{r Visualization: ExploratorySpatial, echo=FALSE, message=FALSE, warning=FALSE}
@@ -217,13 +219,16 @@ mapview(df_plantcapacities_locations_sf_2021,
 Narrowing down on the top three states with the highest growth in installed capacity, we used ggplot and gganimate to visualize the increase and distribution of plants within the state as shown below:
 
 ```{r Visualization: California, echo=FALSE, message=FALSE, warning=FALSE}
-state.sf.CA<- st_read(here('Data/Spatial/cb_2018_us_county_20m.shp')) %>% 
+state.sf.CA<- st_read(here('Data/Spatial/cb_2018_us_county_20m.shp'),
+                      quiet = TRUE) %>% 
   filter(STATEFP == '06')
 
-state.sf.TX<- st_read(here('Data/Spatial/cb_2018_us_county_20m.shp')) %>% 
+state.sf.TX<- st_read(here('Data/Spatial/cb_2018_us_county_20m.shp'),
+                      quiet = TRUE) %>% 
   filter(STATEFP == '48')
 
-state.sf.IA<- st_read(here('Data/Spatial/cb_2018_us_county_20m.shp')) %>% 
+state.sf.IA<- st_read(here('Data/Spatial/cb_2018_us_county_20m.shp'),
+                      quiet = TRUE) %>% 
   filter(STATEFP == '19')
 
 df_plantcapacities_locations_sf_CA <- df_plantcapacities_locations %>%
@@ -302,10 +307,10 @@ states_gif
 
 After establishing that installed capacity of solar and wind plants has increased over time in the United States and particularly in California, Texas and Iowa, we began to explore air quality data to establish the changes in the concentrations of key criteria pollutants over time. To facilitate this, we visualized the wrangled air quality data over time for key pollutants related to fossil fuel generation including SO2, NOX, and PM2.5. Based on the outputs shown below, it can be observed that the amounts of pollutants measured has been trending downwards over time.
 
-```{r Visualization: Pollutant CO, echo=FALSE, message=FALSE, warning=FALSE}
+```{r Visualization: Pollutant CO, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold", out.width="50%"}
 # Observe air quality variation among the top 3 states in renewable energy generation
-top_states_renewables2022$State
-unique(df_pollutant_monthly$State)
+#top_states_renewables2022$State
+#unique(df_pollutant_monthly$State)
 
 df_pollutant_location<-merge(df_pollutant_monthly,df_state,by='State') #add state abbreviation
 
@@ -314,10 +319,10 @@ df_pollutant_top3<-df_pollutant_location %>%
   arrange(Date)
 
 #confirm the selection is correct 
-top_states_renewables2022$State
-unique(df_pollutant_top3$Abbreviation)
+#top_states_renewables2022$State
+#unique(df_pollutant_top3$Abbreviation)
 
-unique(df_pollutant_top3$Pollutant)
+#unique(df_pollutant_top3$Pollutant)
 #CO
 #df_CO_top10<-df_pollutant_top10 %>%
 #  filter(Pollutant=="Carbon monoxide")
@@ -387,167 +392,107 @@ Ha: There is a change in recorded air quality with an increase in renewable ener
 
 To evaluate this hypothesis, we generated a plot of Mean PM2.5 measured against net monthly solar and wind generation for all three states.
 
-```{r GLMPM25, echo=FALSE, message=FALSE, warning=FALSE}
+```{r variableVisualization, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold", out.width="50%"}
 
-df_CA.energy.data <- df_generation_monthly %>% 
-  filter(State == 'CA') %>%  #Filtering out California
+visualizeVariables <- function(selected_state, selected_pollutant){
+  #Filtering out energy data for the selected state
+  df_energy.data <- df_generation_monthly %>% 
+  filter(State == selected_state) %>%  #Filtering out California
   filter(Year  %in% c(2001:2021))
-
-df_CA.energy.air.data.PM2.5 <- df_pollutant_top3 %>% 
-  filter(Abbreviation == 'CA') %>% #Filtering out California
-  filter(Pollutant=="PM2.5 - Local Conditions") %>% 
-  select(Date, Mean, Abbreviation) %>% #Filtering out only the columns:`Date`, `Mean`, `Abbreviation`
-  rename(MeanPM25 = Mean, State = Abbreviation) %>%
-  left_join(df_CA.energy.data, by = c('Date', 'State'))
   
-#Plotting the regression
-  ggplot(df_CA.energy.air.data.PM2.5, aes(x = NetGeneration, y = MeanPM25)) +
-  geom_point() +
-  geom_smooth(method = "lm", color = "red") +
-  labs(x="Net Generation (MWh)", 
+  if(selected_pollutant == 'PM2.5 - Local Conditions'){
+    df_energy.air.data <- df_pollutant_top3 %>%
+      filter(Abbreviation == selected_state) %>% #Filtering out selected state
+      filter(Pollutant == selected_pollutant) %>%
+      select(Date, Mean, Abbreviation) %>% #Filtering out:`Date`, `Mean`, `Abbreviation`
+      rename(MeanPM25 = Mean, State = Abbreviation) %>% #Renaming columns
+      left_join(df_energy.data, by = c('Date', 'State')) #Combining air quality and energy dataframes
+    
+    #Plotting the regression
+  plot_energy.air <- ggplot(df_energy.air.data, aes(x = NetGeneration, y = MeanPM25)) +
+    geom_point() +
+    geom_smooth(method = "lm", color = "red") +
+    labs(x="Net Generation (MWh)", 
        y="Mean PM2.5 (µg/m³)",
-       title="Mean PM2.5 (µg/m³) by Net Generation (MWh) in California")
-
-df_TX.energy.data <- df_generation_monthly %>% 
-  filter(State == 'TX') %>%  #Filtering out Texas
-  filter(Year  %in% c(2001:2021))
-
-df_TX.energy.air.data.PM2.5 <- df_pollutant_top3 %>% 
-  filter(Abbreviation == 'TX') %>% #Filtering out Texas
-  filter(Pollutant=="PM2.5 - Local Conditions") %>% 
-  select(Date, Mean, Abbreviation) %>% #Filtering out only the columns:`Date`, `Mean`, `Abbreviation`
-  rename(MeanPM25 = Mean, State = Abbreviation) %>%
-  left_join(df_TX.energy.data, by = c('Date', 'State'))
+       title= paste0("Mean PM2.5 (µg/m³) by Net Generation (MWh) in ",
+                     df_state$State[df_state$Abbreviation == selected_state]))
+  return(list(df_energy.air.data, plot_energy.air))}
   
-#Plotting the regression
-  ggplot(df_TX.energy.air.data.PM2.5, aes(x = NetGeneration, y = MeanPM25)) +
-  geom_point() +
-  geom_smooth(method = "lm", color = "red") +
-  labs(x="Net Generation (MWh)", 
-       y="Mean PM2.5 (µg/m³)",
-       title="Mean PM2.5 (µg/m³) by Net Generation (MWh) in Texas")
-
-
-df_IA.energy.data <- df_generation_monthly %>% 
-  filter(State == 'IA') %>%  #Filtering out Iowa
-  filter(Year  %in% c(2001:2021))
-
-df_IA.energy.air.data.PM2.5 <- df_pollutant_top3 %>% 
-  filter(Abbreviation == 'IA') %>% #Filtering out Iowa
-  filter(Pollutant=="PM2.5 - Local Conditions") %>% 
-  select(Date, Mean, Abbreviation) %>% #Filtering out only the columns:`Date`, `Mean`, `Abbreviation`
-  rename(MeanPM25 = Mean, State = Abbreviation) %>%
-  left_join(df_IA.energy.data, by = c('Date', 'State'))
+  else if(selected_pollutant == 'Sulfur dioxide'){
+    df_energy.air.data <- df_pollutant_top3 %>%
+      filter(Abbreviation == selected_state) %>% #Filtering out selected state
+      filter(Pollutant == selected_pollutant) %>%
+      select(Date, Mean, Abbreviation) %>% #Filtering out:`Date`, `Mean`, `Abbreviation`
+      rename(MeanSO2 = Mean, State = Abbreviation) %>% #Renaming columns
+      left_join(df_energy.data, by = c('Date', 'State')) #Combining air quality and energy dataframes
+    
+    #Plotting the regression
+    plot_energy.air <- ggplot(df_energy.air.data, aes(x = NetGeneration, y = MeanSO2)) +
+      geom_point() +
+      geom_smooth(method = "lm", color = "red") +
+      labs(x="Net Generation (MWh)",
+           y="SO2 Concentration (ppb)",
+           title= paste0("SO2 Concentration (ppb) by Net Generation (MWh) in ", 
+                         df_state$State[df_state$Abbreviation == selected_state]))
+    
+    return(list(df_energy.air.data, plot_energy.air))
+    
+  }else if(selected_pollutant == 'Nitrogen dioxide (NO2)'){
+    df_energy.air.data <- df_pollutant_top3 %>%
+      filter(Abbreviation == selected_state) %>% #Filtering out selected state
+      filter(Pollutant == selected_pollutant) %>%
+      select(Date, Mean, Abbreviation) %>% #Filtering out:`Date`, `Mean`, `Abbreviation`
+      rename(MeanNO2 = Mean, State = Abbreviation) %>% #Renaming columns
+      left_join(df_energy.data, by = c('Date', 'State')) #Combining air quality and energy dataframes
+    
+    #Plotting the regression
+    plot_energy.air <- ggplot(df_energy.air.data, aes(x = NetGeneration, y = MeanNO2)) +
+      geom_point() +
+      geom_smooth(method = "lm", color = "red") +
+      labs(x="Net Generation (MWh)",
+           y="Nitrogen Dioxide Concentration (µg/m³)",
+           title= paste0("Nitrogen Dioxide Concentration (µg/m³) by Net Generation (MWh)
+                         in ",
+                         df_state$State[df_state$Abbreviation == selected_state]))
+    return(list(df_energy.air.data, plot_energy.air))
+        
+  }
   
-#Plotting the regression
-  ggplot(df_IA.energy.air.data.PM2.5, aes(x = NetGeneration, y = MeanPM25)) +
-  geom_point() +
-  geom_smooth(method = "lm", color = "red") +
-  labs(x="Net Generation (MWh)", 
-       y="Mean PM2.5 (µg/m³)",
-       title="Mean PM2.5 (µg/m³) by Net Generation (MWh) in Iowa")
+}
 
-```
-```{r GLMSO2, echo=FALSE, message=FALSE, warning=FALSE}
+df_CA.energy.air.data.PM2.5 <- visualizeVariables('CA','PM2.5 - Local Conditions')[[1]]
+print(visualizeVariables('CA','PM2.5 - Local Conditions')[[2]])
 
-df_CA.energy.air.data.SO2 <- df_pollutant_top3 %>% 
-  filter(Abbreviation == 'CA') %>% #Filtering out California
-  filter(Pollutant=="Sulfur dioxide") %>% 
-  select(Date, Mean, Abbreviation) %>% #Filtering out only the columns:`Date`, `Mean`, `Abbreviation`
-  rename(MeanSO2 = Mean, State = Abbreviation) %>%
-  left_join(df_CA.energy.data, by = c('Date', 'State'))
-  
-#Plotting the regression
-  ggplot(df_CA.energy.air.data.SO2, aes(x = NetGeneration, y = MeanSO2)) +
-  geom_point() +
-  geom_smooth(method = "lm", color = "red") +
-  labs(x="Net Generation (MWh)", 
-       y="SO2 Concentration (ppb)",
-       title="SO2 Concentration (ppb) by Net Generation (MWh) in California")
+df_TX.energy.air.data.PM2.5 <- visualizeVariables('TX','PM2.5 - Local Conditions')[[1]]
+print(visualizeVariables('TX','PM2.5 - Local Conditions')[[2]])
 
-df_TX.energy.air.data.SO2 <- df_pollutant_top3 %>% 
-  filter(Abbreviation == 'TX') %>% #Filtering out Texas
-  filter(Pollutant=="Sulfur dioxide") %>% 
-  select(Date, Mean, Abbreviation) %>% #Filtering out only the columns:`Date`, `Mean`, `Abbreviation`
-  rename(MeanSO2 = Mean, State = Abbreviation) %>%
-  left_join(df_TX.energy.data, by = c('Date', 'State'))
-  
-#Plotting the regression
-  ggplot(df_TX.energy.air.data.SO2, aes(x = NetGeneration, y = MeanSO2)) +
-  geom_point() +
-  geom_smooth(method = "lm", color = "red") +
-  labs(x="Net Generation (MWh)", 
-       y="SO2 Concentration (ppb)",
-       title="SO2 Concentration (ppb) by Net Generation (MWh) in Texas")
+df_IA.energy.air.data.PM2.5 <- visualizeVariables('IA','PM2.5 - Local Conditions')[[1]]
+print(visualizeVariables('IA','PM2.5 - Local Conditions')[[2]])
+
+df_CA.energy.air.data.SO2 <- visualizeVariables('CA','Sulfur dioxide')[[1]]
+print(visualizeVariables('CA','Sulfur dioxide')[[2]])
+
+df_TX.energy.air.data.SO2 <- visualizeVariables('TX','Sulfur dioxide')[[1]]
+print(visualizeVariables('TX','Sulfur dioxide')[[2]])
+
+df_IA.energy.air.data.SO2 <- visualizeVariables('IA','Sulfur dioxide')[[1]]
+print(visualizeVariables('IA','Sulfur dioxide')[[2]])
+
+df_CA.energy.air.data.NOX <- visualizeVariables('CA','Nitrogen dioxide (NO2)')[[1]]
+print(visualizeVariables('CA','Nitrogen dioxide (NO2)')[[2]])
+
+df_TX.energy.air.data.NOX <- visualizeVariables('TX','Nitrogen dioxide (NO2)')[[1]]
+print(visualizeVariables('TX','Nitrogen dioxide (NO2)')[[2]])
+
+df_IA.energy.air.data.NOX <- visualizeVariables('IA','Nitrogen dioxide (NO2)')[[1]]
+print(visualizeVariables('IA','Nitrogen dioxide (NO2)')[[2]])
 
 
-df_IA.energy.air.data.SO2 <- df_pollutant_top3 %>% 
-  filter(Abbreviation == 'IA') %>% #Filtering out Iowa
-  filter(Pollutant=="Sulfur dioxide") %>% 
-  select(Date, Mean, Abbreviation) %>% #Filtering out only the columns:`Date`, `Mean`, `Abbreviation`
-  rename(MeanSO2 = Mean, State = Abbreviation) %>%
-  left_join(df_IA.energy.data, by = c('Date', 'State'))
-  
-#Plotting the regression
-  ggplot(df_IA.energy.air.data.SO2, aes(x = NetGeneration, y = MeanSO2)) +
-  geom_point() +
-  geom_smooth(method = "lm", color = "red") +
-  labs(x="Net Generation (MWh)", 
-       y="SO2 Concentration (ppb)",
-       title="SO2 Concentration (ppb) by Net Generation (MWh) in Iowa")
+
 
 ```
 
-```{r GLMNOX, echo=FALSE, message=FALSE, warning=FALSE}
-
-df_CA.energy.air.data.NOX <- df_pollutant_top3 %>% 
-  filter(Abbreviation == 'CA') %>% #Filtering out California
-  filter(Pollutant=="Nitrogen dioxide (NO2)") %>% 
-  select(Date, Mean, Abbreviation) %>% #Filtering out only the columns:`Date`, `Mean`, `Abbreviation`
-  rename(MeanNO2 = Mean, State = Abbreviation) %>%
-  left_join(df_CA.energy.data, by = c('Date', 'State'))
-  
-#Plotting the regression
-  ggplot(df_CA.energy.air.data.NOX, aes(x = NetGeneration, y = MeanNO2)) +
-  geom_point() +
-  geom_smooth(method = "lm", color = "red") +
-  labs(x="Net Generation (MWh)", 
-       y="Nitrogen Dioxide Concentration",
-       title="Nitrogen Dioxide Concentration by Net Generation (MWh) in California")
-
-
-df_TX.energy.air.data.NOX <- df_pollutant_top3 %>% 
-  filter(Abbreviation == 'TX') %>% #Filtering out Texas
-  filter(Pollutant=="Nitrogen dioxide (NO2)") %>% 
-  select(Date, Mean, Abbreviation) %>% #Filtering out only the columns:`Date`, `Mean`, `Abbreviation`
-  rename(MeanNO2 = Mean, State = Abbreviation) %>%
-  left_join(df_TX.energy.data, by = c('Date', 'State'))
-  
-#Plotting the regression
-  ggplot(df_TX.energy.air.data.NOX, aes(x = NetGeneration, y = MeanNO2)) +
-  geom_point() +
-  geom_smooth(method = "lm", color = "red") +
-  labs(x="Net Generation (MWh)", 
-       y="Nitrogen Dioxide Concentration",
-       title="Nitrogen Dioxide Concentration by Net Generation (MWh) in Texas")
-
-df_IA.energy.air.data.NOX <- df_pollutant_top3 %>% 
-  filter(Abbreviation == 'IA') %>% #Filtering out Iowa
-  filter(Pollutant=="Nitrogen dioxide (NO2)") %>% 
-  select(Date, Mean, Abbreviation) %>% #Filtering out only the columns:`Date`, `Mean`, `Abbreviation`
-  rename(MeanNO2 = Mean, State = Abbreviation) %>%
-  left_join(df_IA.energy.data, by = c('Date', 'State'))
-  
-#Plotting the regression
-  ggplot(df_IA.energy.air.data.NOX, aes(x = NetGeneration, y = MeanNO2)) +
-  geom_point() +
-  geom_smooth(method = "lm", color = "red") +
-  labs(x="Net Generation (MWh)", 
-       y="Nitrogen Dioxide Concentration (µg/m³)",
-       title="Nitrogen Dioxide Concentration by Net Generation (MWh) in Iowa")
-
-```
-The figures above suggest that the measured value of the pollutants has an inverse relationship or negative correlation with net generation from solar. This implies that the higher the amount of energy generated from wind and solar, the lower the amount of the three criteria pollutants. To investigate this further, we performed a simple linear regression as outlined below:
+The figures above suggest that the measured value of the pollutants has an inverse relationship or negative correlation with net generation from solar. This implies that the higher the amount of energy generated from wind and solar, the lower the amount of the three criteria pollutants. To investigate this further, we performed a simple linear regression of the relationship between the mean quantity of each pollutant and net energy generation with the results summarized in the table outlined below:
 
 ```{r SimpleLinearRegression, echo=FALSE, message=FALSE, warning=FALSE}
 PM25.CA.regression <- lm(
