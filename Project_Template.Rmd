@@ -22,6 +22,7 @@ getwd()
 #install.packages('foreign')
 #install.packages('sf')
 #install.packages('leaflet')
+#install.packages('leaflet.extras2')
 #install.packages('mapview')
 #install.packages("httr")
 #install.packages("jsonlite") 
@@ -58,6 +59,7 @@ library(gghighlight)
 library(magick)
 library(janitor)
 library(gtsummary)
+library(leaflet.extras2)
 ```
 
 ```{r Setting Plot Theme, warning=FALSE, include=FALSE, echo=False}
@@ -235,9 +237,9 @@ df_generation_monthly %>%
   scale_color_viridis_d()
 ```
 
-The change in installed solar and wind plants can be also be visualized spatially across the contiguous United States as illustrated below. From the map, we note that the number of installed solar and wind plants increased significantly over the two decades from 2001 - 2021.
+The change in installed solar and wind plants can be also be visualized spatially across the contiguous United States as illustrated below. From the map, we note that the number of installed solar and wind plants increased significantly over the two decades from 2001 to 2021.
 
-```{r Visualization: ExploratorySpatial, echo=FALSE, message=FALSE, warning=FALSE}
+```{r Visualization: Exploratory Spatial, echo=FALSE, message=FALSE, warning=FALSE,fig.show="hold",fig.cap="Solar and Wind Power Plant Locations",out.height="50%"}
 df_plantcapacities_locations_sf_2001 <- df_plantcapacities_locations %>%
   na.omit() %>%
   st_as_sf(coords = c('LONG','LAT'), crs=4269) %>% 
@@ -250,27 +252,31 @@ df_plantcapacities_locations_sf_2021 <- df_plantcapacities_locations %>%
 mapview(df_plantcapacities_locations_sf_2001,
         cex = 'CAPACITY',
         col.regions = '#2b83ba',
-        layer.name = 'Solar and Wind Plant Locations in 2001') |
-mapview(df_plantcapacities_locations_sf_2021,
+        layer.name = '2001') |
+  mapview(df_plantcapacities_locations_sf_2021,
         cex = 'CAPACITY',
         col.regions = '#f7fcb9',
-        layer.name = 'Solar and Wind Plant Locations in 2021')
+        layer.name = '2021')
 ```
-Narrowing down on the top three states with the highest growth in installed capacity, we used ggplot and gganimate to visualize the increase and distribution of plants within the state as shown below:
+We utilized ggplot and gganimate to visualize the increase and distribution of plants within the states that had the highest growth in installed capacity. We thus found the top three states and created a visualization that is shown below:
 
-```{r Visualization: California, echo=FALSE, message=FALSE, warning=FALSE}
+```{r Visualization: Top 3 States, echo=FALSE, message=FALSE, warning=FALSE}
+# Plot state boundary
+#CA
 state.sf.CA<- st_read(here('Data/Spatial/cb_2018_us_county_20m.shp'),
                       quiet = TRUE) %>% 
   filter(STATEFP == '06')
-
+#TX
 state.sf.TX<- st_read(here('Data/Spatial/cb_2018_us_county_20m.shp'),
                       quiet = TRUE) %>% 
   filter(STATEFP == '48')
-
+#IA
 state.sf.IA<- st_read(here('Data/Spatial/cb_2018_us_county_20m.shp'),
                       quiet = TRUE) %>% 
   filter(STATEFP == '19')
 
+# Map out power plant location over time
+#CA
 df_plantcapacities_locations_sf_CA <- df_plantcapacities_locations %>%
   na.omit() %>%
   st_as_sf(coords = c('LONG','LAT'), crs=4269) %>% 
@@ -281,13 +287,14 @@ animated_map_CA <- ggplot() +
   geom_sf(data=state.sf.CA, fill='#addd8e') +
   geom_sf(data=df_plantcapacities_locations_sf_CA, color = '#f7fcb9', aes(size = CAPACITY)) +
   labs(title = 'Year: {frame_time}',
-       subtitle = "Solar and Wind Installed Capacity") +
+       subtitle = "California Solar and Wind Installed Capacity") +
   coord_sf(crs = 4269, datum = NA) +
   transition_time(YEAR) +
   enter_fade() +
   exit_fade() +
   shadow_mark()
 
+#TX
 df_plantcapacities_locations_sf_TX <- df_plantcapacities_locations %>%
   na.omit() %>%
   st_as_sf(coords = c('LONG','LAT'), crs=4269) %>% 
@@ -298,13 +305,14 @@ animated_map_TX <- ggplot() +
   geom_sf(data=state.sf.TX, fill='#addd8e') +
   geom_sf(data=df_plantcapacities_locations_sf_TX, color = '#f7fcb9', aes(size = CAPACITY)) +
   labs(title = 'Year: {frame_time}',
-       subtitle = "Solar and Wind Installed Capacity") +
+       subtitle = "Texas Solar and Wind Installed Capacity") +
   coord_sf(crs = 4269, datum = NA) +
   transition_time(YEAR) +
   enter_fade() +
   exit_fade() +
   shadow_mark()
 
+#IA
 df_plantcapacities_locations_sf_IA <- df_plantcapacities_locations %>%
   na.omit() %>%
   st_as_sf(coords = c('LONG','LAT'), crs=4269) %>% 
@@ -315,18 +323,23 @@ animated_map_IA <- ggplot() +
   geom_sf(data=state.sf.IA, fill='#addd8e') +
   geom_sf(data=df_plantcapacities_locations_sf_IA, color = '#f7fcb9', aes(size = CAPACITY)) +
   labs(title = 'Year: {frame_time}',
-       subtitle = "Solar and Wind Installed Capacity") +
+       subtitle = "Iowa Solar and Wind Installed Capacity") +
   coord_sf(crs = 4269, datum = NA) +
   transition_time(YEAR) +
   enter_fade() +
   exit_fade() +
   shadow_mark()
+```
 
-#CA_gif <- animate(animated_map_CA, renderer = gifski_renderer(), fps = 20, duration = 30)
+```{r Create GIF, echo=FALSE, message=FALSE, warning=FALSE,fig.show="hold",fig.cap="Solar and Wind Power Plant Locations"}
+
+#CA_gif <- animate(animated_map_CA, renderer = gifski_renderer(), fps = 20, duration = 30) 
 #TX_gif <- animate(animated_map_TX, renderer = gifski_renderer(), fps = 20, duration = 30)
 #IA_gif <- animate(animated_map_IA, renderer = gifski_renderer(), fps = 20, duration = 30)
+ 
 
-CA_gif <- animate(animated_map_CA, width = 240, height = 240)
+# Create GIF
+CA_gif <- animate(animated_map_CA, width = 240, height = 240) #notes: error message, Error: arguments have different crs
 TX_gif <- animate(animated_map_TX, width = 240, height = 240)
 IA_gif <- animate(animated_map_IA, width = 240, height = 240)
 
@@ -334,7 +347,7 @@ CA_mgif <- image_read(CA_gif)
 TX_mgif <- image_read(TX_gif)
 IA_mgif <- image_read(IA_gif)
 
-states_gif <- image_append(c(CA_mgif[1], TX_mgif[1], IA_mgif[1]))
+states_gif <- image_append(c(CA_mgif[1], TX_mgif[1], IA_mgif[1])) #combine 3 states gifs into 1 gif
 
 for(i in 2:96) {
   combined <- image_append(c(CA_mgif[i], TX_mgif[i], IA_mgif[i]))
@@ -342,38 +355,31 @@ for(i in 2:96) {
 }
 
 states_gif
-
 ```
 
-After establishing that installed capacity of solar and wind plants has increased over time in the United States and particularly in California, Texas and Iowa, we began to explore air quality data to establish the changes in the concentrations of key criteria pollutants over time. To facilitate this, we visualized the wrangled air quality data over time for key pollutants related to fossil fuel generation including SO2, NOX, and PM2.5. Based on the outputs shown below, it can be observed that the amounts of pollutants measured has been trending downwards over time.
+After analyzing the increasing installed capacity of solar and wind plants in the United States, with a special focus on California, Texas, and Iowa, we proceeded to examine air quality data to determine the changes in the concentration of key criteria pollutants over time. To simplify the process, we used visualizations to demonstrate the wrangled air quality data over time for essential pollutants linked to fossil fuel generation, such as SO2, NOX, and PM2.5. From the results presented below, it is evident that the amount of pollutants measured has been decreasing over time.
 
-```{r Visualization: Pollutant CO, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold", out.width="50%"}
-# Observe air quality variation among the top 3 states in renewable energy generation
-#top_states_renewables2022$State
-#unique(df_pollutant_monthly$State)
+#notes: why exclude PM10 and CO?
 
+```{r Pollutant Data Wrangling, echo=FALSE, message=FALSE, warning=FALSE}
 df_pollutant_location<-merge(df_pollutant_monthly,df_state,by='State') #add state abbreviation
 
+# Select air quality variation among the top 3 states in renewable energy generation
 df_pollutant_top3<-df_pollutant_location %>%
-  filter(Abbreviation %in% top_states_renewables2022$State) %>%
+  filter(Abbreviation %in% top_states_renewables2022$State) %>% 
   arrange(Date)
 
-#confirm the selection is correct 
-#top_states_renewables2022$State
-#unique(df_pollutant_top3$Abbreviation)
-
-#unique(df_pollutant_top3$Pollutant)
 #CO
-#df_CO_top10<-df_pollutant_top10 %>%
-#  filter(Pollutant=="Carbon monoxide")
+df_CO_top3<-df_pollutant_top3 %>%
+  filter(Pollutant=="Carbon monoxide")%>% 
+  mutate(Year = year(Date)) %>% 
+  mutate(Year = as.factor(Year))
 
 #PM2.5
 df_PM2.5_top3<-df_pollutant_top3 %>%
   filter(Pollutant=="PM2.5 - Local Conditions") %>% 
   mutate(Year = year(Date)) %>% 
   mutate(Year = as.factor(Year))
-
-
 
 #SO2
 df_SO2_top3<-df_pollutant_top3 %>%
@@ -389,47 +395,44 @@ df_NO2_top3<-df_pollutant_top3 %>%
 
 #PM10
 #df_PM10_top10<-df_pollutant_top10 %>%
-#  filter(Pollutant=="PM10 Total 0-10um STP")
+#  filter(Pollutant=="PM10 Total 0-10um STP") %>% 
+#  mutate(Year = year(Date)) %>% 
+#  mutate(Year = as.factor(Year))
+```
 
-#plotting trend for top 10 states
-#plot.PM10<-ggplot(df_PM10_top3, aes(x =Date, y = Mean, color=State)) +
-#  geom_line()+
-#  labs(x="Date",y="mg/m\u00B3")+
-#  ggtitle("PM10 Concentration")+
-#  theme(plot.title = element_text(hjust = 0.5))
-#plot.PM10
-
+```{r Visualization: PM2.5, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold",fig.cap="PM2.5 Concentration", out.width="50%"}
 ggplot(df_PM2.5_top3, aes(x =Date, y = Mean, color=State)) +
   geom_line()+
   labs(x="Date",y="mg/m\u00B3")+
   ggtitle("PM2.5 Concentration")+
   theme(plot.title = element_text(hjust = 0.5))
-#plot.PM2.5
+```
 
-#plot.CO<-ggplot(df_CO_top3, aes(x =Date, y = Mean, color=State)) +
-#  geom_line()+
-#  labs(x="Date",y="Parts per million")+
-#  ggtitle("Carbon Monoxide Concentration")+
-#  theme(plot.title = element_text(hjust = 0.5))
-#plot.CO
-
+```{r Visualization: SO2, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold",fig.cap="PM2.5 Concentration", out.width="50%"}
 ggplot(df_SO2_top3, aes(x =Date, y = Mean, color=State)) +
   geom_line()+
   labs(x="Date",y="Parts per million")+
   ggtitle("Sulfur Dioxide Concentration")+
   theme(plot.title = element_text(hjust = 0.5))
-#plot.SO2
+```
 
+```{r Visualization: CO, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold",fig.cap="CO Concentration", out.width="50%"}
+ggplot(df_CO_top3, aes(x =Date, y = Mean, color=State)) +
+  geom_line()+
+  labs(x="Date",y="Parts per million")+
+  ggtitle("Carbon Monoxide Concentration")+
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r Visualization: NO2, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold",fig.cap="NO2 Concentration", out.width="50%"}
 ggplot(df_NO2_top3, aes(x =Date, y = Mean, color=State)) +
   geom_line()+
   labs(x="Date",y="Parts per billion")+
   ggtitle("Nitrogen Dioxide Concentration")+
   theme(plot.title = element_text(hjust = 0.5))
-#plot.NO2
-
 ```
 \newpage
-```{r variableVisualizationFunction, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold", out.width="50%"}
+```{r Variable Visualization Function, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold", out.width="50%"}
 
 visualizeVariables <- function(selected_state, selected_pollutant){
   #Filtering out energy data for the selected state
@@ -517,14 +520,12 @@ df_IA.energy.air.data.NOX <- visualizeVariables('IA','Nitrogen dioxide (NO2)')[[
 
 ```
   
-To investigate the trend in the measured pollutants over time further, we undertook a time series analysis of the measured values of each of the three pollutants in the three states. Here, we sought to confirm if PM2.5, SO2 and NO2 concentrations changed over the period 2001 - 2021 in California, Texas and Iowa. The null hypothesis is that there has been no change in the recorded PM2.5, SO2 and NO2 concentrations in the three states over the sample period. The alternative hypothesis is that there has been a change in the recorded PM2.5, SO2 and NO2 concentrations in the three states over the sample period.   
+To investigate the trend in the measured pollutants over time, we conducted a time series analysis of the measured values of each of the three pollutants in California, Texas, and Iowa from 2001 to 2021. Our goal was to determine whether there has been a change in the recorded PM2.5, SO2, and NO2 concentrations over the sample period. The null hypothesis is that there has been no change in the recorded PM2.5, SO2 and NO2 concentrations in the three states over the sample period. The alternative hypothesis is that there has been a change in the recorded PM2.5, SO2 and NO2 concentrations in the three states over the sample period.   
 
-After decomposing the time series, we noted that each of the three pollutants has a seasonal component as observed in the time series plots shown below. Hence we run the seasonal Mann-Kendall (SMK) test on each dataset, which resulted in a p-value of less than 0.05 (<0.05) for each time series as observed in the results below. This analysis implies that the results are statistically significant and we can reject the null hypothesis. Therefore there has been a change in the recorded PM2.5, SO2 and NO2 concentrations over the period 2001 - 2021 in California, Texas and Iowa. The negative tau values suggests a negative correlation which implies that the change for each pollutant in each state has been a decrease.  
-
+After decomposing the time series, we observed that each of the three pollutants has a seasonal component as observed in the time series plots shown below. Hence we run the seasonal Mann-Kendall (SMK) test on each dataset, which produced a p-value of less than 0.05 (<0.05) for each time series. As a result, we can reject the null hypothesis, and the analysis indicates that there has been a change in the recorded PM2.5, SO2, and NO2 concentrations over the period 2001 - 2021 in California, Texas, and Iowa. The negative tau values suggests a negative correlation which implies that the change for each pollutant in each state has been a decrease.  
 
 ```{r Time Series, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold", out.width="50%"}
 #Generating PM2.5 time series objects
-
 first_month <- month(first(df_CA.energy.air.data.PM2.5$Date))
 first_year <- year(first(df_CA.energy.air.data.PM2.5$Date))
 
@@ -556,6 +557,7 @@ IA.NOX.monthly.ts <- ts(df_IA.energy.air.data.NOX$Mean,
                         start=c(first_year,first_month),
                         frequency=12) 
 
+```{r Time Series, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold", out.width="50%"}
 #Decomposing the monthly time series objects and plotting
 
 CA.PM2.5.monthly.data.decomp <- stl(CA.PM2.5.monthly.ts,s.window = "periodic")
@@ -579,6 +581,7 @@ plot(IA.SO2.monthly.data.decomp)
 plot(IA.NOX.monthly.data.decomp)
 
 #Running monotonic trend analysis
+```
 
 # Running the seasonal Mann-Kendall test
 CA.PM2.5.data.trend <- Kendall::SeasonalMannKendall(CA.PM2.5.monthly.ts)
@@ -601,6 +604,7 @@ TX.NOX.data.trend
 IA.PM2.5.data.trend
 IA.SO2.data.trend
 IA.NOX.data.trend
+
 ```
 
 # Analysis
