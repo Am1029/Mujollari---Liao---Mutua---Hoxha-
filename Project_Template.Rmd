@@ -11,7 +11,7 @@ output: html_document
 \listoffigures 
 \newpage
 
-
+#Ina: double check the parts with "notes" before submission
 
 ```{r Install Packages, warning=FALSE, include=FALSE, echo=False}
 # Set your working directory
@@ -145,8 +145,13 @@ This question delves deeper into identifying which specific pollutants are most 
 
 # Dataset Information
 
-The exploratory analysis required the combination of air quality and power plant datasets. Air quality data in the analysis was obtained from the United States Environmental Protection Agency while power plant data was obtained from the U.S. Energy Information Administration. The sample years were the two decades namely 2001 - 2021.
+The exploratory analysis required the combination of air quality and power plant datasets. Air quality data in the analysis was obtained from the United States Environmental Protection Agency while power plant data was obtained from the U.S. Energy Information Administration. 
+#notes: add data processed process
+The sample years were the two decades namely 2001 - 2021.
 
+
+
+#notes: confirm variable in the dataset information is raw data
 ```{r Table: Dataset Information, messgae=False}
 dataset_info<- data.frame(
   Dataset = c("Air Quality Summary Statistics by Criteria Pollutants and Location","Power Plant Generator Level Capacities and Locations","Power Plant Monthly Energy Generation "),
@@ -164,9 +169,10 @@ print(info_table_new)
 
 # Exploratory Analysis
 
-We began our exploratory analysis by examining if and how solar and wind energy generating capacity, net generation and air quality has changed over time in the contiguous United States. To begin to visualize this, we used the wrangled power plant to visualize both quantitatively and spatially the change in total solar and wind plant installed capacity over the period 2001 - 2021. From the exploratory line plot, we note the three states with the highest cumulative installed capacity include California, Texas and Iowa which have significant growth in installed capacity compared to other states. To visualize the energy generation associated with these installations, we also plotted the annual energy generation from solar and wind over a similar period and noted that the states with the largest installed capacity are also the states with the highest annual energy generation from these renewable sources.
+We began our exploratory analysis by examining if and how solar and wind energy generating capacity, net generation and air quality has changed over time in the contiguous United States.
+We first used the wrangled power plant to visualize the changes in the total installed capacity of solar and wind plants from 2001 to 2021. Figure 1 shows that California, Texas, and Iowa hold the highest cumulative installed capacity, suggesting that these states have significant growth in their installed capacity compared to other states. In addition, we plotted the annual energy generation from solar and wind sources over the same period of time, observing that the states with the highest installed capacity also exhibit the largest annual energy generation from these renewable sources (Figure 2 and Figure 3).
 
-```{r Visualization: CapacityOverTime, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold", out.width="50%"}
+```{r Data Wrangling: Capacity Over Time, echo=FALSE, message=FALSE, warning=FALSE}
 #Plotting out trend for top 3 states
 top_states_capacity2021 <- df_plantcapacities_locations %>% 
   filter(YEAR == 2021) %>% 
@@ -175,6 +181,20 @@ top_states_capacity2021 <- df_plantcapacities_locations %>%
   mutate(Rank = rank(-CAPACITY)) %>% 
   filter(Rank %in% c(1:3))
 
+top_states_renewables2022 <- df_generation_monthly %>% 
+  filter(Year == 2022) %>% 
+  group_by(State) %>% 
+  summarise(NetGeneration = sum(NetGeneration)) %>% 
+  mutate(Rank = rank(-NetGeneration)) %>% 
+  filter(Rank %in% c(1:3))
+
+#Summarizing monthly data into annual data
+df_generation_annual <- df_generation_monthly %>% 
+  group_by(State, Year) %>% 
+  summarise(NetGeneration = sum(NetGeneration))
+```
+
+```{r Visualization: Installed Capacity,echo=FALSE, message=FALSE, warning=FALSE,fig.show="hold",fig.cap="Figure. Annual Installed Generation Capacity: Solar and Wind (MW)",out.height="50%"}
 df_plantcapacities_locations %>%
   group_by(STATE, YEAR) %>% 
   summarise(CAPACITY = sum(CAPACITY)) %>%
@@ -185,16 +205,11 @@ df_plantcapacities_locations %>%
   labs(x="Year",
        y="Installed Capacity (MW)",
        title="Annual Installed Generation Capacity: Solar and Wind (MW)") +
-  scale_color_viridis_d() +
-  gghighlight(max(CAPACITY)>12000)
+  scale_color_viridis_d()  + #set all states with the same color
+  gghighlight(max(CAPACITY)>12000) #only highlight top 3 states with different colors
+```
 
-#visualizing renewable energy generation over time
-
-#Summarizing monthly data into annual data
-df_generation_annual <- df_generation_monthly %>% 
-  group_by(State, Year) %>% 
-  summarise(NetGeneration = sum(NetGeneration))
-
+```{r Visualization: Annual Generation,echo=FALSE, message=FALSE, warning=FALSE,fig.show="hold",fig.cap="Figure. Annual Solar and Wind Energy Generation over time (TWh)",out.height="50%"}
 df_generation_annual %>% 
   ggplot(aes(x=Year,
              y=NetGeneration,
@@ -204,17 +219,10 @@ df_generation_annual %>%
   labs(x="Year",
        y="Annual Energy Generation (TWh)",
        title="Annual Solar and Wind Energy Generation over time (TWh)") +
-  scale_color_viridis_d()
+  scale_color_viridis_d() 
+```
 
-
-top_states_renewables2022 <- df_generation_monthly %>% 
-  filter(Year == 2022) %>% 
-  group_by(State) %>% 
-  summarise(NetGeneration = sum(NetGeneration)) %>% 
-  mutate(Rank = rank(-NetGeneration)) %>% 
-  filter(Rank %in% c(1:3))
-
-#Plotting out monthly trend for top 3 states
+```{r Visualization: Monthly Generation,echo=FALSE, message=FALSE, warning=FALSE,fig.show="hold",fig.cap="Figure. Monthly Renewable Energy Generation per State (TWh)",out.height="50%"}
 df_generation_monthly %>%
   ggplot(aes(x=Date,
              y=NetGeneration,
@@ -225,12 +233,8 @@ df_generation_monthly %>%
        y="Monthly Energy Generation (TWh)",
        title="Monthly Renewable Energy Generation per State (TWh)") +
   scale_color_viridis_d()
-
-#plot.CapacityOverTime
-#plot.AnnualGeneration
-#plot.MonthlyGeneration
 ```
-  
+
 The change in installed solar and wind plants can be also be visualized spatially across the contiguous United States as illustrated below. From the map, we note that the number of installed solar and wind plants increased significantly over the two decades from 2001 - 2021.
 
 ```{r Visualization: ExploratorySpatial, echo=FALSE, message=FALSE, warning=FALSE}
