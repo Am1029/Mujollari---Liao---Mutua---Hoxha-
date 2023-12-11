@@ -32,7 +32,7 @@ getwd()
 #install.packages('gghighlight')
 #install.packages('magick')
 #install.packages('gtsummary')
-
+#install.packages('janitor')
 ```
 
 ```{r Loading library, warning=FALSE, include=FALSE, echo=False}
@@ -61,8 +61,28 @@ library(gtsummary)
 ```
 
 ```{r Setting Plot Theme, warning=FALSE, include=FALSE, echo=False}
-# Set your ggplot theme
-theme_set(theme_minimal())
+plot_theme<- theme_classic(base_size = 12)+
+  theme(
+    #plot background
+    plot.background = element_rect(color="gray"),
+    
+    #plot title
+    plot.title=element_text(color="black",hjust=0.5,vjust=1),
+    
+    #axis labels
+    axis.text=element_text(color="black"),
+    
+    #gridlines 
+    panel.grid.major=element_line("white"),
+    axis.ticks=element_line(color="white"),
+    
+    #legend 
+    legend.key=element_rect(color="white"),
+    legend.background = element_rect(color="white"),
+    legend.position="right"
+      )
+
+theme_set(plot_theme)
 ```
 
 ```{r Importing Data, warning=FALSE, include=FALSE, echo=False}
@@ -112,7 +132,6 @@ Understanding the relationship between renewable energy generation and air quali
 
 The hypothesis underlying this research is that an increase in renewable energy generation leads to a reduction in air pollution. This hypothesis is grounded in the understanding that renewable energy sources, unlike fossil fuels, do not emit pollutants like sulfur dioxide, nitrogen oxides, and particulate matter during electricity generation.
 
-
 ## Research Questions
 
 1: What is the relationship between distributed renewable energy generation and the level of air pollution?
@@ -128,14 +147,18 @@ This question delves deeper into identifying which specific pollutants are most 
 
 The exploratory analysis required the combination of air quality and power plant datasets. Air quality data in the analysis was obtained from the United States Environmental Protection Agency while power plant data was obtained from the U.S. Energy Information Administration. The sample years were the two decades namely 2001 - 2021.
 
-Table: Dataset Information for the Sample Period 2001 - 2021
+```{r Table: Dataset Information, messgae=False}
+dataset_info<- data.frame(
+  Dataset = c("Air Quality Summary Statistics by Criteria Pollutants and Location","Power Plant Generator Level Capacities and Locations","Power Plant Monthly Energy Generation "),
+  Source = c("EPA Air Quality System (AQS) ","EIA Form EIA-860","EIA Form EIA-923"),
+  Variables = c("Daily Pm2.5, PM10, SO2, NO, and CO Concentrations","Annual Installed Generation Capacity by Fuel Type","Monthly Net Generation by Fuel Type"))
 
-Dataset  | Source  | Variables Used
--------------: | :------------- | :-------------
-Air Quality Summary Statistics by Criteria Pollutants and Location  | EPA Air Quality System (AQS)  | Monthly Mean Ozone and PM2.5
-Power Plant Generator Level Capacities and Locations  | EIA Form EIA-860  | Annual Installed Generation Capacity by Fuel Type
-Power Plant Monthly Energy Generation  | EIA Form EIA-923  | Monthly Net Generation by Fuel Type
+info_table<-knitr::kable(dataset_info,caption="Dataset Information for the Sample Period 2001 - 2021")
+info_table_new<- info_table %>%
+  kable_styling(full_width = FALSE) #create bottom lines in the table
 
+print(info_table_new)
+```
 
 \newpage
 
