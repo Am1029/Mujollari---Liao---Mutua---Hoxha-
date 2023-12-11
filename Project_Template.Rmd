@@ -11,15 +11,31 @@ output: html_document
 \listoffigures 
 \newpage
 
-```{r Setup, warning=FALSE, include=FALSE}
-# Set your working directory
 
-# Load your packages
+
+```{r Install Packages, warning=FALSE, include=FALSE, echo=False}
+# Set your working directory
+getwd()
+
+# Load packages
 #install.packages('readxl')
 #install.packages('foreign')
 #install.packages('sf')
 #install.packages('leaflet')
 #install.packages('mapview')
+#install.packages("httr")
+#install.packages("jsonlite") 
+#install.packages("gganimate")
+#install.packages('transformr')
+#install.packages('animation')
+#install.packages('gifski')
+#install.packages('gghighlight')
+#install.packages('magick')
+#install.packages('gtsummary')
+
+```
+
+```{r Loading library, warning=FALSE, include=FALSE, echo=False}
 library(readxl)
 library(here)
 library(tidyverse)
@@ -32,31 +48,24 @@ library(leaflet)
 library(mapview); 
 mapviewOptions(fgb = FALSE, basemaps.color.shuffle = FALSE)
 library(rvest)
-#install.packages("httr")
 library(httr)
-#install.packages("jsonlite") 
 library(jsonlite) 
-#install.packages("gganimate")
 library(gganimate)
-#install.packages('transformr')
 library(transformr)
-#install.packages('animation')
 library(animation)
-#install.packages('gifski')
 library(gifski)
-#install.packages('gghighlight')
 library(gghighlight)
-#install.packages('magick')
 library(magick)
 library(janitor)
-#install.packages('gtsummary')
 library(gtsummary)
+```
 
-
-
+```{r Setting Plot Theme, warning=FALSE, include=FALSE, echo=False}
 # Set your ggplot theme
 theme_set(theme_minimal())
+```
 
+```{r Importing Data, warning=FALSE, include=FALSE, echo=False}
 # Check working directory
 here()
 
