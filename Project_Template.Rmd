@@ -201,7 +201,7 @@ df_generation_monthly %>%
   
 The change in installed solar and wind plants can be also be visualized spatially across the contiguous United States as illustrated below. From the map, we note that the number of installed solar and wind plants increased significantly over the two decades from 2001 - 2021.
 
-```{r Visualization: ExploratorySpatial, echo=FALSE, message=FALSE, warning=FALSE}
+```{r Visualization: ExploratorySpatial, echo=FALSE, message=FALSE, warning=FALSE, out.width="100%"}
 df_plantcapacities_locations_sf_2001 <- df_plantcapacities_locations %>%
   na.omit() %>%
   st_as_sf(coords = c('LONG','LAT'), crs=4269) %>% 
@@ -290,9 +290,9 @@ animated_map_IA <- ggplot() +
 #TX_gif <- animate(animated_map_TX, renderer = gifski_renderer(), fps = 20, duration = 30)
 #IA_gif <- animate(animated_map_IA, renderer = gifski_renderer(), fps = 20, duration = 30)
 
-CA_gif <- animate(animated_map_CA, width = 240, height = 240)
-TX_gif <- animate(animated_map_TX, width = 240, height = 240)
-IA_gif <- animate(animated_map_IA, width = 240, height = 240)
+CA_gif <- animate(animated_map_CA, width = 300, height = 300)
+TX_gif <- animate(animated_map_TX, width = 300, height = 300)
+IA_gif <- animate(animated_map_IA, width = 300, height = 300)
 
 CA_mgif <- image_read(CA_gif)
 TX_mgif <- image_read(TX_gif)
@@ -532,15 +532,15 @@ IA.PM2.5.monthly.data.decomp <- stl(IA.PM2.5.monthly.ts,s.window = "periodic")
 IA.SO2.monthly.data.decomp <- stl(IA.SO2.monthly.ts,s.window = "periodic")
 IA.NOX.monthly.data.decomp <- stl(IA.NOX.monthly.ts,s.window = "periodic")
 
-plot(CA.PM2.5.monthly.data.decomp)
-plot(CA.SO2.monthly.data.decomp)
-plot(CA.NOX.monthly.data.decomp)
-plot(TX.PM2.5.monthly.data.decomp)
-plot(TX.SO2.monthly.data.decomp)
-plot(TX.NOX.monthly.data.decomp)
-plot(IA.PM2.5.monthly.data.decomp)
-plot(IA.SO2.monthly.data.decomp)
-plot(IA.NOX.monthly.data.decomp)
+plot(CA.PM2.5.monthly.data.decomp, main = "PM2.5 in California")
+plot(CA.SO2.monthly.data.decomp, main = "SO2 in California")
+plot(CA.NOX.monthly.data.decomp, main = "NO2 in California")
+plot(TX.PM2.5.monthly.data.decomp, main = "PM2.5 in Texas")
+plot(TX.SO2.monthly.data.decomp, main = "SO2 in Texas")
+plot(TX.NOX.monthly.data.decomp, main = "NO2 in Texas")
+plot(IA.PM2.5.monthly.data.decomp, main = "PM2.5 in Iowa")
+plot(IA.SO2.monthly.data.decomp, main = "SO2 in Iowa")
+plot(IA.NOX.monthly.data.decomp, main = "NO2 in Iowa")
 
 #Running monotonic trend analysis
 
@@ -556,15 +556,32 @@ IA.SO2.data.trend <- Kendall::SeasonalMannKendall(IA.SO2.monthly.ts)
 IA.NOX.data.trend <- Kendall::SeasonalMannKendall(IA.NOX.monthly.ts)
 
 # Inspecting results
-CA.PM2.5.data.trend
-CA.SO2.data.trend
-CA.NOX.data.trend
-TX.PM2.5.data.trend
-TX.SO2.data.trend
-TX.NOX.data.trend
-IA.PM2.5.data.trend
-IA.SO2.data.trend
-IA.NOX.data.trend
+CA_PM2.5 <- data.frame(t(unlist(CA.PM2.5.data.trend)))
+CA_SO2 <- data.frame(t(unlist(CA.SO2.data.trend)))
+CA_NOX <- data.frame(t(unlist(CA.NOX.data.trend)))
+TX_PM2.5 <- data.frame(t(unlist(TX.PM2.5.data.trend)))
+TX_SO2 <- data.frame(t(unlist(TX.SO2.data.trend)))
+TX_NOX <- data.frame(t(unlist(TX.NOX.data.trend)))
+IA_PM2.5 <- data.frame(t(unlist(IA.PM2.5.data.trend)))
+IA_SO2 <- data.frame(t(unlist(IA.SO2.data.trend)))
+IA_NOX <- data.frame(t(unlist(IA.NOX.data.trend)))
+
+
+SMKResults <- bind_rows(lst(CA_PM2.5,
+                        CA_SO2,
+                        CA_NOX,
+                        TX_PM2.5,
+                        TX_SO2,
+                        TX_NOX,
+                        IA_PM2.5,
+                        IA_SO2,
+                        IA_NOX),
+                        .id = "id") %>% 
+  select(id, tau, sl)
+
+knitr::kable(SMKResults,
+             col.names = c("Trend","tau","2-sided pvalue"),
+             caption = "Results of Seasonal Mann-Kendall test")
 ```
 
 # Analysis
@@ -572,8 +589,9 @@ IA.NOX.data.trend
 What is the relationship between distributed renewable energy generation and the level of air pollution?
 
 We can formulate a null and alternative hypothesis for the above research question as follows:  
-> H0: There is no change in recorded air quality with an increase in renewable energy generation in the states of California, Texas and Iowa over the period 2001 - 2021.
-> Ha: There is a change in recorded air quality with an increase in renewable energy generation in the states of California, Texas and Iowa over the period 2001 - 2021.
+
+>H0: There is no change in recorded air quality with an increase in renewable energy generation in the states of California, Texas and Iowa over the period 2001 - 2021.  
+>Ha: There is a change in recorded air quality with an increase in renewable energy generation in the states of California, Texas and Iowa over the period 2001 - 2021.
 
 To evaluate this hypothesis, we generated a plot of Mean PM2.5 measured against net monthly solar and wind generation for all three states.
 
@@ -736,17 +754,20 @@ tbl_stack_regressionTables
   
 #Interpretation (to be edited)
 
-PM2.5 and Net Generation: There doesn't seem to be a clear relationship between net generation and PM2.5 levels. While some states with higher net generation have lower PM2.5 levels, the data is scattered, suggesting other factors may be at play in determining PM2.5 concentrations.
+PM2.5 and Net Generation:   
 
-PM10 and Net Generation: Similar to PM2.5, the PM10 concentrations do not show a clear trend in relation to net generation. There is significant scatter across all levels of net generation.
+The beta coefficient of net renewable energy generation which is the slope of the regression line estimating the relationship between PM2.5 concentration and renewable energy generation is -0.77, -0.28 and -1.3 respectively for California, Texas and Iowa. This implies that an increase in solar and wind energy generation is resulting in a decrease in concentrations of PM2.5. Assuming a confidence interval of 0.05, the p values are less than our confidence level which implies that the results are statistically significant and there is a significant negative correlation between PM2.5 concentration and renewable energy generation. Based on the R-squared values, 8.8%, 17.7% and 21.4% of the total variance in PM2.5 concentration in California, Texas and Iowa respectively can be explained by renewable energy generation.
 
-Sulfur Dioxide (SO2) and Net Generation: The plot for SO2 shows a dense clustering of lower SO2 levels at higher net generation, which might indicate that higher renewable energy generation could be associated with lower SO2 concentrations.
+Sulfur Dioxide (SO2) and Net Generation:   
 
-Nitrogen Dioxide (NO2) and Net Generation: The scatter plot for NO2 presents a wide distribution of pollutant concentrations across the net generation axis, indicating no strong correlation between the two.
+The beta coefficient of net renewable energy generation which is the slope of the regression line estimating the relationship between SO2 concentration and renewable energy generation is -0.21, -0.09 and -0.64 respectively for California, Texas and Iowa. This implies that an increase in solar and wind energy generation is resulting in a decrease in concentrations of SO2. Assuming a confidence interval of 0.05, the p values are less than our confidence level which implies that the results are statistically significant and there is a significant negative correlation between SO2 concentration and renewable energy generation. Based on the R-squared values, 44.5%, 21.3% and 42.3% of the total variance in SO2 concentration in California, Texas and Iowa respectively can be explained by renewable energy generation.
 
-Carbon Monoxide (CO) and Net Generation: The CO levels are spread across the generation axis, but there is a noticeable cluster of lower CO concentrations at higher levels of net generation.
+Nitrogen Dioxide (NO2) and Net Generation:   
 
-So, in conclusion, upon reviewing the scatter plots for PM2.5, PM10, NO2, and SO2 in relation to renewable energy generation, it is the scatter plots for Sulfur Dioxide (SO2) and Carbon Monoxide (CO) that show some indication of a relationship. For SO2, higher levels of renewable energy generation seem to correspond with a clustering of lower pollutant concentrations. Similarly, the scatter plot for CO also shows a clustering of data points towards lower CO levels as net generation increases. These observations suggest an inverse relationship where increased renewable energy generation could be associated with decreased emissions of SO2 and CO, which are pollutants typically associated with the combustion of fossil fuels.  
+The beta coefficient of net renewable energy generation which is the slope of the regression line estimating the relationship between NO2 concentration and renewable energy generation is -1.8, -0.47 and -1.5 respectively for California, Texas and Iowa. This implies that an increase in solar and wind energy generation is resulting in a decrease in concentrations of NO2. Assuming a confidence interval of 0.05, the p values are less than our confidence level which implies that the results are statistically significant and there is a significant negative correlation between NO2 concentration and renewable energy generation. Based on the R-squared values, 46.4%, 25.5% and 35.2% of the total variance in NO2 concentration in California, Texas and Iowa respectively can be explained by renewable energy generation.
+
+
+So, in conclusion, these observations suggest an inverse relationship where increased renewable energy generation could be associated with decreased emissions of PM2.5, SO2 and NO2, which are pollutants typically associated with the combustion of fossil fuels.  
 
   
   
@@ -889,8 +910,9 @@ tbl_stack_regressionTables
 Among three air quality indicators (PM2.5, NO2, and SO2), which display the most significant response to variations in energy generation?
 
 We can formulate a null and alternative hypothesis for the above research question as follows:  
-> H0: There has been a uniform impact on all three air quality indicator by an increase in renewable energy generation in the states of California, Texas and Iowa over the period 2001 - 2021.
-> Ha: There has not been a uniform impact on all three air quality indicator by an increase in renewable energy generation in the states of California, Texas and Iowa over the period 2001 - 2021.
+  
+>H0: There has been a uniform impact on all three air quality indicator by an increase in renewable energy generation in the states of California, Texas and Iowa over the period 2001 - 2021.  
+>Ha: There has not been a uniform impact on all three air quality indicator by an increase in renewable energy generation in the states of California, Texas and Iowa over the period 2001 - 2021.
 
 To evaluate the above research question, we plotted the distribution of quantity of the pollutants over time as demonstrated in the box plots below.  
 
@@ -960,14 +982,14 @@ ggplot(df_SO2_top3, aes(x = Year,
 
 ```
   
-# Interpretation of the Boxplots
-#it may be redundant, we can decide if we want to keep it or not..
+## Interpretation of the Boxplots
+From the boxplots, we noted the following:
 
 PM2.5 Levels: The distribution of PM2.5 levels varies widely between states. California shows a particularly high range of PM2.5 concentrations with notable outliers, indicating episodes of very poor air quality. It's important to look into the reasons for California's variability, such as wildfires or urban pollution.
 
 NO2 Levels: NO2 levels are somewhat variable, with California showing a higher median concentration. This could be associated with industrial activities or high traffic density.
 
-SO2 Levels: The distribution of SO2 is quite tight in most states, except for a few outliers. This pollutant is often associated with industrial processes and the burning of sulfur-containing fuels.
+SO2 Levels: Iowa has historically had a higher range of SO2 concentrations which have fluctuated over time and trended downwards. This pollutant is often associated with industrial processes and the burning of sulfur-containing fuels such as coal. The coal mining and energy generation activity in Iowa could explain the relatively higher concentrations of SO2 measure relative to California and Texas.
 
 
 ```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
