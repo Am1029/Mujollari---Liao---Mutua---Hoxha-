@@ -1,4 +1,4 @@
-# <Repository Title>
+# Mujollari_Liao_Mutua_Hoxha_EDE_Final_Project
 <Instructions: copy and paste this template into your project README file (found in the parent folder of the repository). Fill in relevant information as requested.>
 
 <General notes: add as much information as is relevant for your repository. Some overarching guidelines are provided, but feel free to expand on these guidelines.>
@@ -11,6 +11,7 @@
 
 ## Investigators
 
+Mujollari A., Liao I., Mutua Mulu B., Hoxha L
 <name(s), affiliation(s), contact information, roles (if applicable)>
 
 ## Keywords
