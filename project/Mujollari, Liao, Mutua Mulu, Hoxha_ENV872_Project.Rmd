@@ -8,10 +8,11 @@ output:
 ---
 #notes: README and Metadata add spatial data source 
 
-```{=tex}
+
 \newpage
 \tableofcontents
-```
+
+
 ```{r Install Packages, warning=FALSE, include=FALSE, echo=FALSE}
 # Set your working directory
 getwd()
@@ -152,7 +153,7 @@ This question delves deeper into identifying which specific pollutants are most 
 
 The exploratory analysis required the combination of air quality and power plant datasets. Air quality data in the analysis was obtained from the United States Environmental Protection Agency (EPA) while power plant data was obtained from the U.S. Energy Information Administration (EIA).Our analysis covered a period of two decades, from 2001 to 2021.
 
-EPA has established air quality standards for six pollutants which include particular matter, ozone, sulfur dioxide, nitrogen dioxide, carbon monoxide, and lead. Among these, particular matter (PM2.5), nitrogen dioxide (NO2), and sulfur dioxide (SO2) are mainly produced as by-products of fossil fuel combustion and pose significant threats to human health (Perera et al. 2019, Perera 2017, Bridges et al. 2015). Thus, this study aims to investigate the relationship between the three air quality indicators, PM2.5, NO2, and SO2, and energy generation. We downloaded the pollutants data from the EPA website that is available from 1980 to 2021 (<https://aqs.epa.gov/aqsweb/airdata/download_files.html#Daily>). The data is at the county level and consists of number of observation points for each county. We calculated the daily mean by state to retrieve the monthly pollutant concentrations at the state-level.
+EPA has established air quality standards for six pollutants which include particular matter, ozone, sulfur dioxide, nitrogen dioxide, carbon monoxide, and lead. Among these, particular matter (PM2.5), nitrogen dioxide (NO2), and sulfur dioxide (SO2) are mainly produced as by-products of fossil fuel combustion and pose significant threats to human health (Perera et al. 2019, Perera 2017, Bridges et al. 2015). Thus, this study aims to investigate the relationship between the three air quality indicators, PM2.5, NO2, and SO2, and energy generation. We downloaded the pollutants data from the EPA website that is available from 1980 to 2021 (<https://aqs.epa.gov/aqsweb/airdata/download_files.html#Daily>). The data is at the city level and consists of number of observation points in each county. We calculated the daily mean by state to retrieve the monthly pollutant concentrations at the state-level.
 
 We collected monthly and annual energy generation from power plants and power plant locations and capacities from two datasets, EIA-923 (<https://www.eia.gov/electricity/data/eia923/>) and EIA-860 (<https://www.eia.gov/electricity/data/eia860/>), respectively. The EIA-923 dataset provides us with detailed generator data such as generation, fuel consumption, and stocks. On the other hand, the EIA-860 dataset lists the capacities of power plants, including the generators that are operable, as well as the plant-level data for the surveyed generators, which includes their locations information.
 
