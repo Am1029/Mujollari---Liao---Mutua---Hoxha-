@@ -1,0 +1,1036 @@
+---
+title: "An Exploration of the Relationship between Air Quality and Solar & Wind Energy Generation in the United States"
+subtitle: https://github.com/Am1029/Mujollari_Liao_Mutua_Hoxha/tree/main
+author: "Mujollari A., Liao I., Mutua Mulu B., Hoxha L."
+output:
+  html_document:
+    toc: true
+---
+#notes: README and Metadata add spatial data source 
+
+```{=tex}
+\newpage
+\tableofcontents
+```
+```{r Install Packages, warning=FALSE, include=FALSE, echo=FALSE}
+# Set your working directory
+getwd()
+
+# Load packages
+#install.packages('readxl')
+#install.packages('foreign')
+#install.packages('sf')
+#install.packages('leaflet')
+#install.packages('leaflet.extras2')
+#install.packages('mapview')
+#install.packages("httr")
+#install.packages("jsonlite") 
+#install.packages("gganimate")
+#install.packages("https://cran.r-project.org/src/contrib/Archive/transformr/transformr_0.1.3.tar.gz", repos = NULL, type = "source")
+#install.packages('animation')
+#install.packages('gifski')
+#install.packages('gghighlight')
+#install.packages('magick')
+#install.packages('gtsummary')
+#install.packages('janitor')
+#install.packages('kableExtra')
+```
+
+```{r Loading library, warning=FALSE, include=FALSE, echo=FALSE}
+library(readxl)
+library(here)
+library(tidyverse)
+library(lubridate)
+library(foreign)
+library(dplyr)
+library(tidyverse, quietly = TRUE)
+library(sf)
+library(leaflet)
+library(mapview); 
+mapviewOptions(fgb = FALSE, basemaps.color.shuffle = FALSE)
+library(rvest)
+library(httr)
+library(jsonlite) 
+library(gganimate)
+library(transformr)
+library(animation)
+library(gifski)
+library(gghighlight)
+library(magick)
+library(janitor)
+library(gtsummary)
+library(leaflet.extras2)
+library(kableExtra)
+```
+
+```{r Setting Plot Theme, warning=FALSE, include=FALSE, echo=FALSE}
+plot_theme<- theme_classic(base_size = 12)+
+  theme(
+    #plot background
+    plot.background = element_rect(color="white"),
+    
+    #plot boarder
+    panel.border = element_blank(),
+    
+    #plot title
+    plot.title=element_text(color="black",hjust=0.5,vjust=1),
+    
+    #axis labels
+    axis.text=element_text(color="black"),
+    
+    #gridlines 
+    panel.grid.major=element_line("lightgray"),
+    axis.ticks=element_line(color="white"),
+    
+    #legend 
+    legend.key=element_rect(color="white"),
+    legend.background = element_rect(color="white"),
+    legend.position="right"
+      )
+
+theme_set(plot_theme)
+```
+
+```{r Importing Data, warning=FALSE, include=FALSE, echo=FALSE}
+# Check working directory
+here()
+
+# Load your datasets
+#Importing processed energy monthly generation data
+df_generation_monthly <- read.csv(here("Data/Processed/df_generation_monthly.csv"),
+                                  stringsAsFactors = TRUE) %>% 
+  mutate(NetGeneration = NetGeneration/1000000)
+#Importing processed pollutant monthly data 
+df_pollutant_monthly <- read.csv(here("Data/Processed/df_pollutant.csv"),
+                                  stringsAsFactors = TRUE)
+
+#Importing processed plant location and capacity data
+df_plantcapacities_locations <- read.csv(here("Data/Processed/df_plantcapacities_locations.csv"),
+                                  stringsAsFactors = TRUE)
+#Importing processed pollutant observation stations data
+df_station_locations <- read.csv(here("Data/Processed/df_latitude_longitude.csv"),
+                                  stringsAsFactors = TRUE)
+#Importing state abbreviations 
+df_state<- read.csv(here("Data/Processed/df_statename.csv"),
+                                  stringsAsFactors = TRUE)
+
+#Setting date columns as date objects
+df_generation_monthly$Date <- ymd(df_generation_monthly$Date)
+df_pollutant_monthly$Date <- ym(df_pollutant_monthly$Date)
+
+#Setting date columns as date objects
+df_generation_monthly$Date <- ymd(df_generation_monthly$Date)
+df_pollutant_monthly$Date <- ymd(df_pollutant_monthly$Date)
+
+```
+
+# Rationale and Research Questions
+
+## Background
+
+In the context of escalating global environmental challenges, the shift from traditional fossil fuel-based energy sources to renewable energy has become a focal point in efforts to reduce carbon emissions and combat climate change (Kabeyi et. al, 2022). However, the transition's broader environmental impacts, particularly on air quality, remain less explored. This transition is especially relevant given the increasing global energy demand and the need to meet this demand sustainably.
+
+## Significance
+
+Understanding the relationship between renewable energy generation and air quality is crucial. Renewable energy sources like wind and solar are lauded for their lower environmental impact compared to fossil fuels, which are major contributors to air pollution (UCSUSA, 2018). Air pollution is a significant environmental hazard, affecting human health, ecosystems, and the climate. It is responsible for millions of premature deaths annually and contributes to the occurrence of diseases like asthma, heart disease, and lung cancer (National Geographic, 2023). Therefore, assessing how increased renewable energy generation affects air quality indicators is not just an environmental concern but a public health imperative.
+
+## Theoretical Context
+
+The hypothesis underlying this research is that an increase in renewable energy generation leads to a reduction in air pollution. This hypothesis is grounded in the understanding that renewable energy sources, unlike fossil fuels, do not emit pollutants like sulfur dioxide, nitrogen oxides, and particulate matter during electricity generation.
+
+## Research Questions
+
+**1. What is the relationship between distributed renewable energy generation and the level of air pollution?**
+
+This question aims to investigate the correlation between the rise in renewable energy generation and the concentrations of various air pollutants. It seeks to understand whether regions with higher renewable energy output exhibit lower levels of air pollutants.
+
+**2. Among air quality indicators (PM2.5, NO2, and SO2), which display the most significant response to variations in energy generation?**
+
+This question delves deeper into identifying which specific pollutants are most responsive to changes in energy generation types. It is crucial for pinpointing the environmental benefits of renewable energy sources and for policy-making aimed at targeted air pollution reduction.
+
+# Dataset Information
+
+The exploratory analysis required the combination of air quality and power plant datasets. Air quality data in the analysis was obtained from the United States Environmental Protection Agency (EPA) while power plant data was obtained from the U.S. Energy Information Administration (EIA).Our analysis covered a period of two decades, from 2001 to 2021.
+
+EPA has established air quality standards for six pollutants which include particular matter, ozone, sulfur dioxide, nitrogen dioxide, carbon monoxide, and lead. Among these, particular matter (PM2.5), nitrogen dioxide (NO2), and sulfur dioxide (SO2) are mainly produced as by-products of fossil fuel combustion and pose significant threats to human health (Perera et al. 2019, Perera 2017, Bridges et al. 2015). Thus, this study aims to investigate the relationship between the three air quality indicators, PM2.5, NO2, and SO2, and energy generation. We downloaded the pollutants data from the EPA website that is available from 1980 to 2021 (<https://aqs.epa.gov/aqsweb/airdata/download_files.html#Daily>). The data is at the county level and consists of number of observation points for each county. We calculated the daily mean by state to retrieve the monthly pollutant concentrations at the state-level.
+
+We collected monthly and annual energy generation from power plants and power plant locations and capacities from two datasets, EIA-923 (<https://www.eia.gov/electricity/data/eia923/>) and EIA-860 (<https://www.eia.gov/electricity/data/eia860/>), respectively. The EIA-923 dataset provides us with detailed generator data such as generation, fuel consumption, and stocks. On the other hand, the EIA-860 dataset lists the capacities of power plants, including the generators that are operable, as well as the plant-level data for the surveyed generators, which includes their locations information.
+
+```{r Table: Dataset Information, echo=FALSE, message=FALSE, warning=FALSE,fig.show="hold", out.width="50%",fig.align = "center"}
+dataset_info<- data.frame(
+  Dataset = c("Air Quality Summary Statistics by Criteria Pollutants and Location","Power Plant Generator Level Capacities and Locations","Power Plant Monthly Energy Generation "),
+  Source = c("EPA Air Quality System (AQS) ","EIA Form EIA-860","EIA Form EIA-923"),
+  Variables = c("Monthly PM2.5, SO2, and NO2 Concentrations","Annual Installed Generation Capacity by Fuel Type","Monthly Net Generation by Fuel Type"))
+
+info_table<-knitr::kable(dataset_info,caption = "Table 1. Dataset Information for the Sample Period 2001 - 2021")%>%
+  kable_styling(full_width = FALSE)  #create bottom lines in the table
+info_table
+```
+
+\newpage
+
+# Exploratory Analysis
+
+We began our exploratory analysis by examining if and how solar and wind energy generating capacity, net generation and air quality has changed over time in the contiguous United States. We first used the wrangled power plant to visualize the changes in the total installed capacity of solar and wind plants from 2001 to 2021. Figure 1 shows that California, Texas, and Iowa hold the highest cumulative installed capacity, suggesting that these states have significant growth in their installed capacity compared to other states. In addition, we plotted the annual energy generation from solar and wind sources over the same period of time, observing that the states with the highest installed capacity also exhibit the largest annual energy generation from these renewable sources (Figure 2 and Figure 3).
+
+```{r Data Wrangling: Capacity Over Time, echo=FALSE, message=FALSE, warning=FALSE}
+#Plotting out trend for top 3 states
+top_states_capacity2021 <- df_plantcapacities_locations %>% 
+  filter(YEAR == 2021) %>% 
+  group_by(STATE) %>% 
+  summarise(CAPACITY = sum(CAPACITY)) %>% 
+  mutate(Rank = rank(-CAPACITY)) %>% 
+  filter(Rank %in% c(1:3))
+
+top_states_renewables2022 <- df_generation_monthly %>% 
+  filter(Year == 2022) %>% 
+  group_by(State) %>% 
+  summarise(NetGeneration = sum(NetGeneration)) %>% 
+  mutate(Rank = rank(-NetGeneration)) %>% 
+  filter(Rank %in% c(1:3))
+
+#Summarizing monthly data into annual data
+df_generation_annual <- df_generation_monthly %>% 
+  group_by(State, Year) %>% 
+  summarise(NetGeneration = sum(NetGeneration))
+```
+
+```{r Visualization: Installed Generation Capacity,echo=FALSE, message=FALSE, warning=FALSE, fig.cap="Figure 1. Annual Installed Generation Capacity: Solar and Wind (MW)",out.width="50%",out.height="60%",fig.align = "center"}
+df_plantcapacities_locations %>%
+  group_by(STATE, YEAR) %>% 
+  summarise(CAPACITY = sum(CAPACITY)) %>%
+  ggplot(aes(x=YEAR,
+             y=CAPACITY,
+             color=STATE)) +
+  geom_line() +
+  labs(x="Year",
+       y="Installed Capacity (MW)",
+       title="Annual Installed Generation Capacity: Solar and Wind (MW)") +
+  scale_color_viridis_d()  + #set all states with the same color
+  gghighlight(max(CAPACITY)>12000) #only highlight top 3 states with different colors
+```
+
+```{r Visualization: Annual Generation,echo=FALSE, message=FALSE, warning=FALSE,fig.cap="Figure 2. Annual Solar and Wind Energy Generation over time (TWh)",out.width="50%",out.height="50%",fig.show="hold",fig.align = "center"}
+df_generation_annual %>% 
+  ggplot(aes(x=Year,
+             y=NetGeneration,
+             color=State)) +
+  geom_line() +
+  gghighlight(max(NetGeneration)>40) +
+  labs(x="Year",
+       y="Annual Energy Generation (TWh)",
+       title="Annual Solar and Wind Energy Generation over time (TWh)") +
+  scale_color_viridis_d() 
+```
+
+```{r Visualization: Monthly Generation,echo=FALSE, message=FALSE, warning=FALSE,fig.cap="Figure 3. Monthly Solar and Wind Energy Generation over time (TWh)",out.width="50%",out.height="50%",fig.show="hold",fig.align = "center"}
+df_generation_monthly %>%
+  ggplot(aes(x=Date,
+             y=NetGeneration,
+             color=State)) +
+  geom_line() +
+  gghighlight(max(NetGeneration)>4.5) +
+  labs(x="Date",
+       y="Monthly Energy Generation (TWh)",
+       title="Monthly Renewable Energy Generation per State (TWh)") +
+  scale_color_viridis_d()
+```
+
+The change in installed solar and wind plants can be also be visualized spatially across the contiguous United States as illustrated below. From the map, we note that the number of installed solar and wind plants increased significantly over the two decades from 2001 to 2021.
+
+```{r Visualization: Exploratory Spatial, echo=FALSE, message=FALSE, warning=FALSE}
+df_plantcapacities_locations_sf_2001 <- df_plantcapacities_locations %>%
+  na.omit() %>%
+  st_as_sf(coords = c('LONG','LAT'), crs=4269) %>% 
+  filter(YEAR == 2001)
+df_plantcapacities_locations_sf_2021 <- df_plantcapacities_locations %>%
+  na.omit() %>%
+  st_as_sf(coords = c('LONG','LAT'), crs=4269) %>% 
+  filter(YEAR == 2021)
+```
+
+```{r Visualization: Interative Map, echo=FALSE, message=FALSE, warning=FALSE,out.width="100%"}
+mapview(df_plantcapacities_locations_sf_2001,
+        cex = 'CAPACITY',
+        col.regions = '#2b83ba',
+        layer.name = '2001') |
+  mapview(df_plantcapacities_locations_sf_2021,
+        cex = 'CAPACITY',
+        col.regions = '#f7fcb9',
+        layer.name = '2021') 
+```
+
+Figure 4. Solar and Wind Power Plants Locations and Capacities
+
+We utilized ggplot and gganimate to visualize the increase and distribution of plants within the states that had the highest growth in installed capacity. We thus found the top three states and created a visualization that is shown as Figure 5.
+
+```{r Visualization: Top 3 States, echo=FALSE, message=FALSE, warning=FALSE}
+# Plot state boundary
+#CA
+state.sf.CA<- st_read(here('Data/Spatial/cb_2018_us_county_20m.shp'),
+                      quiet = TRUE) %>% 
+  filter(STATEFP == '06')
+#TX
+state.sf.TX<- st_read(here('Data/Spatial/cb_2018_us_county_20m.shp'),
+                      quiet = TRUE) %>% 
+  filter(STATEFP == '48')
+#IA
+state.sf.IA<- st_read(here('Data/Spatial/cb_2018_us_county_20m.shp'),
+                      quiet = TRUE) %>% 
+  filter(STATEFP == '19')
+
+# Map out power plant location over time
+#CA
+df_plantcapacities_locations_sf_CA <- df_plantcapacities_locations %>%
+  na.omit() %>%
+  st_as_sf(coords = c('LONG','LAT'), crs=4269) %>% 
+  mutate(Date = ymd(YEAR, truncated = 2L)) %>% 
+  filter(STATE == 'CA')
+
+animated_map_CA <- ggplot() +
+  geom_sf(data=state.sf.CA, fill='#addd8e') +
+  geom_sf(data=df_plantcapacities_locations_sf_CA, color = '#f7fcb9', aes(size = CAPACITY)) +
+  labs(title = 'Year: {frame_time}',
+       subtitle = "California") +
+  coord_sf(crs = 4269, datum = NA) +
+  transition_time(YEAR) +
+  enter_fade() +
+  exit_fade() +
+  shadow_mark()
+
+#TX
+df_plantcapacities_locations_sf_TX <- df_plantcapacities_locations %>%
+  na.omit() %>%
+  st_as_sf(coords = c('LONG','LAT'), crs=4269) %>% 
+  mutate(Date = ymd(YEAR, truncated = 2L)) %>% 
+  filter(STATE == 'TX')
+
+animated_map_TX <- ggplot() +
+  geom_sf(data=state.sf.TX, fill='#addd8e') +
+  geom_sf(data=df_plantcapacities_locations_sf_TX, color = '#f7fcb9', aes(size = CAPACITY)) +
+  labs(title = 'Year: {frame_time}',
+       subtitle = "Texas") +
+  coord_sf(crs = 4269, datum = NA) +
+  transition_time(YEAR) +
+  enter_fade() +
+  exit_fade() +
+  shadow_mark()
+
+#IA
+df_plantcapacities_locations_sf_IA <- df_plantcapacities_locations %>%
+  na.omit() %>%
+  st_as_sf(coords = c('LONG','LAT'), crs=4269) %>% 
+  mutate(Date = ymd(YEAR, truncated = 2L)) %>% 
+  filter(STATE == 'IA')
+
+animated_map_IA <- ggplot() +
+  geom_sf(data=state.sf.IA, fill='#addd8e') +
+  geom_sf(data=df_plantcapacities_locations_sf_IA, color = '#f7fcb9', aes(size = CAPACITY)) +
+  labs(title = 'Year: {frame_time}',
+       subtitle = "Iowa") +
+  coord_sf(crs = 4269, datum = NA) +
+  transition_time(YEAR) +
+  enter_fade() +
+  exit_fade() +
+  shadow_mark()
+```
+
+```{r Create GIF, echo=FALSE, message=FALSE, warning=FALSE,fig.align = "center"}
+
+#CA_gif <- animate(animated_map_CA, renderer = gifski_renderer(), fps = 20, duration = 30) 
+#TX_gif <- animate(animated_map_TX, renderer = gifski_renderer(), fps = 20, duration = 30)
+#IA_gif <- animate(animated_map_IA, renderer = gifski_renderer(), fps = 20, duration = 30)
+ 
+
+# Create GIF
+#CA_gif <- animate(animated_map_CA, width = 300, height = 300) 
+#TX_gif <- animate(animated_map_TX, width = 300, height = 300)
+#IA_gif <- animate(animated_map_IA, width = 300, height = 300)
+#notes: still have error message
+
+#CA_mgif <- image_read(CA_gif)
+#TX_mgif <- image_read(TX_gif)
+#IA_mgif <- image_read(IA_gif)
+
+#states_gif <- image_append(c(CA_mgif[1], TX_mgif[1], IA_mgif[1])) #combine 3 states gifs into 1 gif
+
+#for(i in 2:96) {
+#  combined <- image_append(c(CA_mgif[i], TX_mgif[i], IA_mgif[i]))
+#  states_gif <- c(states_gif, combined)}
+
+#states_gif
+```
+
+Figure 5. Solar and Wind Installed Capacity in California, Texas, Iowa
+
+After analyzing the increasing installed capacity of solar and wind plants in the United States, with a special focus on California, Texas, and Iowa, we proceeded to determine the concentration changes of critical criteria pollutants over time. To simplify the process, we used visualizations to to present the data on the reduction of SO2, NO2, and PM2.5 over time, which are associated with fossil fuel generation. As per our findings below, it's evident that the concentration of these pollutants has been steadily decreasing over the years.
+
+```{r Pollutant Data Wrangling, echo=FALSE, message=FALSE, warning=FALSE}
+df_pollutant_location<-merge(df_pollutant_monthly,df_state,by='State') #add state abbreviation
+
+# Select air quality variation among the top 3 states in renewable energy generation
+df_pollutant_top3<-df_pollutant_location %>%
+  filter(Abbreviation %in% top_states_renewables2022$State) %>% 
+  arrange(Date)
+
+#PM2.5
+df_PM2.5_top3<-df_pollutant_top3 %>%
+  filter(Pollutant=="PM2.5 - Local Conditions") %>% 
+  mutate(Year = year(Date)) %>% 
+  mutate(Year = as.factor(Year))
+
+#SO2
+df_SO2_top3<-df_pollutant_top3 %>%
+  filter(Pollutant=="Sulfur dioxide") %>% 
+  mutate(Year = year(Date)) %>% 
+  mutate(Year = as.factor(Year))
+
+#NO2
+df_NO2_top3<-df_pollutant_top3 %>%
+  filter(Pollutant=="Nitrogen dioxide (NO2)") %>% 
+  mutate(Year = year(Date)) %>% 
+  mutate(Year = as.factor(Year))
+
+#PM10
+#df_PM10_top10<-df_pollutant_top10 %>%
+#  filter(Pollutant=="PM10 Total 0-10um STP") %>% 
+#  mutate(Year = year(Date)) %>% 
+#  mutate(Year = as.factor(Year))
+
+#CO
+#df_CO_top3<-df_pollutant_top3 %>%
+#  filter(Pollutant=="Carbon monoxide")%>% 
+#  mutate(Year = year(Date)) %>% 
+#  mutate(Year = as.factor(Year))
+```
+
+```{r Visualization Pollutants, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold",fig.cap="Figure 6. Trends in Pollutant Concentrations", out.width="50%"}
+ggplot(df_SO2_top3, aes(x =Date, y = Mean, color=State)) +
+  geom_line()+
+  labs(x="Date",y="Parts per million")+
+  ggtitle("Trends in SO2 Concentrations")+
+  theme(plot.title = element_text(hjust = 0.5))
+
+ggplot(df_PM2.5_top3, aes(x =Date, y = Mean, color=State)) +
+  geom_line()+
+  labs(x="Date",y="mg/m\u00B3")+
+  ggtitle("Trends in PM2.5 Concentrations")+
+  theme(plot.title = element_text(hjust = 0.5))
+
+ggplot(df_NO2_top3, aes(x =Date, y = Mean, color=State)) +
+  geom_line()+
+  labs(x="Date",y="Parts per billion")+
+  ggtitle("Trends in NO2 Concentrations")+
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r Variable Visualization Function, echo=FALSE, message=FALSE, warning=FALSE}
+
+visualizeVariables <- function(selected_state, selected_pollutant){
+  #Filtering out energy data for the selected state
+  df_energy.data <- df_generation_monthly %>% 
+  filter(State == selected_state) %>%  #Filtering out California
+  filter(Year  %in% c(2001:2021))
+  
+  if(selected_pollutant == 'PM2.5 - Local Conditions'){
+    df_energy.air.data <- df_pollutant_top3 %>%
+      filter(Abbreviation == selected_state) %>% #Filtering out selected state
+      filter(Pollutant == selected_pollutant) %>%
+      select(Date, Mean, Abbreviation) %>% #Filtering out:`Date`, `Mean`, `Abbreviation`
+      rename(MeanPM25 = Mean, State = Abbreviation) %>% #Renaming columns
+      left_join(df_energy.data, by = c('Date', 'State')) #Combining air quality and energy dataframes
+    
+    #Plotting the regression
+  plot_energy.air <- ggplot(df_energy.air.data, aes(x = NetGeneration, y = MeanPM25)) +
+    geom_point() +
+    geom_smooth(method = "lm", color = "red") +
+    labs(x="Net Generation (TWh)", 
+       y="Mean PM2.5 (µg/m³)",
+       title= paste0("Mean PM2.5 (µg/m³) by Net Generation (TWh) in ",
+                     df_state$State[df_state$Abbreviation == selected_state]))
+  return(list(df_energy.air.data, plot_energy.air))}
+  
+  else if(selected_pollutant == 'Sulfur dioxide'){
+    df_energy.air.data <- df_pollutant_top3 %>%
+      filter(Abbreviation == selected_state) %>% #Filtering out selected state
+      filter(Pollutant == selected_pollutant) %>%
+      select(Date, Mean, Abbreviation) %>% #Filtering out:`Date`, `Mean`, `Abbreviation`
+      rename(MeanSO2 = Mean, State = Abbreviation) %>% #Renaming columns
+      left_join(df_energy.data, by = c('Date', 'State')) #Combining air quality and energy dataframes
+    
+    #Plotting the regression
+    plot_energy.air <- ggplot(df_energy.air.data, aes(x = NetGeneration, y = MeanSO2)) +
+      geom_point() +
+      geom_smooth(method = "lm", color = "red") +
+      labs(x="Net Generation (TWh)",
+           y="SO2 Concentration (ppb)",
+           title= paste0("SO2 Concentration (ppb) by Net Generation (TWh) in ", 
+                         df_state$State[df_state$Abbreviation == selected_state]))
+    
+    return(list(df_energy.air.data, plot_energy.air))
+    
+  }else if(selected_pollutant == 'Nitrogen dioxide (NO2)'){
+    df_energy.air.data <- df_pollutant_top3 %>%
+      filter(Abbreviation == selected_state) %>% #Filtering out selected state
+      filter(Pollutant == selected_pollutant) %>%
+      select(Date, Mean, Abbreviation) %>% #Filtering out:`Date`, `Mean`, `Abbreviation`
+      rename(MeanNO2 = Mean, State = Abbreviation) %>% #Renaming columns
+      left_join(df_energy.data, by = c('Date', 'State')) #Combining air quality and energy dataframes
+    
+    #Plotting the regression
+    plot_energy.air <- ggplot(df_energy.air.data, aes(x = NetGeneration, y = MeanNO2)) +
+      geom_point() +
+      geom_smooth(method = "lm", color = "red") +
+      labs(x="Net Generation (TWh)",
+           y="Nitrogen Dioxide Concentration (µg/m³)",
+           title= paste0("Nitrogen Dioxide Concentration (µg/m³) by Net Generation (TWh)
+                         in ",
+                         df_state$State[df_state$Abbreviation == selected_state]))
+    return(list(df_energy.air.data, plot_energy.air))
+        
+  }
+  
+}
+
+df_CA.energy.air.data.PM2.5 <- visualizeVariables('CA','PM2.5 - Local Conditions')[[1]]
+
+df_TX.energy.air.data.PM2.5 <- visualizeVariables('TX','PM2.5 - Local Conditions')[[1]]
+
+df_IA.energy.air.data.PM2.5 <- visualizeVariables('IA','PM2.5 - Local Conditions')[[1]]
+
+df_CA.energy.air.data.SO2 <- visualizeVariables('CA','Sulfur dioxide')[[1]]
+
+df_TX.energy.air.data.SO2 <- visualizeVariables('TX','Sulfur dioxide')[[1]]
+
+df_IA.energy.air.data.SO2 <- visualizeVariables('IA','Sulfur dioxide')[[1]]
+
+df_CA.energy.air.data.NOX <- visualizeVariables('CA','Nitrogen dioxide (NO2)')[[1]]
+
+df_TX.energy.air.data.NOX <- visualizeVariables('TX','Nitrogen dioxide (NO2)')[[1]]
+
+df_IA.energy.air.data.NOX <- visualizeVariables('IA','Nitrogen dioxide (NO2)')[[1]]
+
+```
+
+To investigate the trend in the measured pollutants over time, we conducted a time series analysis of the measured values of each of the three pollutants in California, Texas, and Iowa from 2001 to 2021. Our goal was to determine whether there has been a change in the recorded PM2.5, SO2, and NO2 concentrations over the sample period. The null hypothesis is that there has been no change in the recorded PM2.5, SO2 and NO2 concentrations in the three states over the sample period. The alternative hypothesis is that there has been a change in the recorded PM2.5, SO2 and NO2 concentrations in the three states over the sample period.
+
+After decomposing the time series, we observed that each of the three pollutants has a seasonal component as observed in the time series plots shown below. Hence we run the seasonal Mann-Kendall (SMK) test on each dataset, which produced a p-value of less than 0.05 (\<0.05) for each time series. As a result, we can reject the null hypothesis, and the analysis indicates that there has been a change in the recorded PM2.5, SO2, and NO2 concentrations over the period 2001 - 2021 in California, Texas, and Iowa. The negative tau values suggests a negative correlation which implies that the change for each pollutant in each state has been a decrease.
+
+```{r Time Series, echo=FALSE, message=FALSE, warning=FALSE, fig.cap="Figure 7. Time Series Analysis for Pollutants",fig.show="hold", out.width="50%"}
+#Generating PM2.5 time series objects
+first_month <- month(first(df_CA.energy.air.data.PM2.5$Date))
+first_year <- year(first(df_CA.energy.air.data.PM2.5$Date))
+
+CA.PM2.5.monthly.ts <- ts(df_CA.energy.air.data.PM2.5$Mean,
+                        start=c(first_year,first_month),
+                        frequency=12) 
+CA.SO2.monthly.ts <- ts(df_CA.energy.air.data.SO2$Mean,
+                        start=c(first_year,first_month),
+                        frequency=12) 
+CA.NOX.monthly.ts <- ts(df_CA.energy.air.data.NOX$Mean,
+                        start=c(first_year,first_month),
+                        frequency=12) 
+TX.PM2.5.monthly.ts <- ts(df_TX.energy.air.data.PM2.5$Mean,
+                        start=c(first_year,first_month),
+                        frequency=12) 
+TX.SO2.monthly.ts <- ts(df_TX.energy.air.data.SO2$Mean,
+                        start=c(first_year,first_month),
+                        frequency=12) 
+TX.NOX.monthly.ts <- ts(df_TX.energy.air.data.NOX$Mean,
+                        start=c(first_year,first_month),
+                        frequency=12) 
+IA.PM2.5.monthly.ts <- ts(df_IA.energy.air.data.PM2.5$Mean,
+                        start=c(first_year,first_month),
+                        frequency=12) 
+IA.SO2.monthly.ts <- ts(df_IA.energy.air.data.SO2$Mean,
+                        start=c(first_year,first_month),
+                        frequency=12) 
+IA.NOX.monthly.ts <- ts(df_IA.energy.air.data.NOX$Mean,
+                        start=c(first_year,first_month),
+                        frequency=12) 
+
+#Decomposing the monthly time series objects and plotting
+CA.PM2.5.monthly.data.decomp <- stl(CA.PM2.5.monthly.ts,s.window = "periodic")
+CA.SO2.monthly.data.decomp <- stl(CA.SO2.monthly.ts,s.window = "periodic")
+CA.NOX.monthly.data.decomp <- stl(CA.NOX.monthly.ts,s.window = "periodic")
+TX.PM2.5.monthly.data.decomp <- stl(TX.PM2.5.monthly.ts,s.window = "periodic")
+TX.SO2.monthly.data.decomp <- stl(TX.SO2.monthly.ts,s.window = "periodic")
+TX.NOX.monthly.data.decomp <- stl(TX.NOX.monthly.ts,s.window = "periodic")
+IA.PM2.5.monthly.data.decomp <- stl(IA.PM2.5.monthly.ts,s.window = "periodic")
+IA.SO2.monthly.data.decomp <- stl(IA.SO2.monthly.ts,s.window = "periodic")
+IA.NOX.monthly.data.decomp <- stl(IA.NOX.monthly.ts,s.window = "periodic")
+
+plot(CA.PM2.5.monthly.data.decomp, main = "PM2.5 in California")
+plot(CA.SO2.monthly.data.decomp, main = "SO2 in California")
+plot(CA.NOX.monthly.data.decomp, main = "NO2 in California")
+plot(TX.PM2.5.monthly.data.decomp, main = "PM2.5 in Texas")
+plot(TX.SO2.monthly.data.decomp, main = "SO2 in Texas")
+plot(TX.NOX.monthly.data.decomp, main = "NO2 in Texas")
+plot(IA.PM2.5.monthly.data.decomp, main = "PM2.5 in Iowa")
+plot(IA.SO2.monthly.data.decomp, main = "SO2 in Iowa")
+plot(IA.NOX.monthly.data.decomp, main = "NO2 in Iowa")
+```
+
+```{r Monotonic Trend Analysis, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold", out.width="50%", fig.align='center'}
+
+# Running the seasonal Mann-Kendall test
+CA.PM2.5.data.trend <- Kendall::SeasonalMannKendall(CA.PM2.5.monthly.ts)
+CA.SO2.data.trend <- Kendall::SeasonalMannKendall(CA.SO2.monthly.ts)
+CA.NOX.data.trend <- Kendall::SeasonalMannKendall(CA.NOX.monthly.ts)
+TX.PM2.5.data.trend <- Kendall::SeasonalMannKendall(TX.PM2.5.monthly.ts)
+TX.SO2.data.trend <- Kendall::SeasonalMannKendall(TX.SO2.monthly.ts)
+TX.NOX.data.trend <- Kendall::SeasonalMannKendall(TX.NOX.monthly.ts)
+IA.PM2.5.data.trend <- Kendall::SeasonalMannKendall(IA.PM2.5.monthly.ts)
+IA.SO2.data.trend <- Kendall::SeasonalMannKendall(IA.SO2.monthly.ts)
+IA.NOX.data.trend <- Kendall::SeasonalMannKendall(IA.NOX.monthly.ts)
+
+# Inspecting results
+CA_PM2.5 <- data.frame(t(unlist(CA.PM2.5.data.trend)))
+CA_SO2 <- data.frame(t(unlist(CA.SO2.data.trend)))
+CA_NOX <- data.frame(t(unlist(CA.NOX.data.trend)))
+TX_PM2.5 <- data.frame(t(unlist(TX.PM2.5.data.trend)))
+TX_SO2 <- data.frame(t(unlist(TX.SO2.data.trend)))
+TX_NOX <- data.frame(t(unlist(TX.NOX.data.trend)))
+IA_PM2.5 <- data.frame(t(unlist(IA.PM2.5.data.trend)))
+IA_SO2 <- data.frame(t(unlist(IA.SO2.data.trend)))
+IA_NOX <- data.frame(t(unlist(IA.NOX.data.trend)))
+
+
+SMKResults <- bind_rows(lst(CA_PM2.5,
+                        CA_SO2,
+                        CA_NOX,
+                        TX_PM2.5,
+                        TX_SO2,
+                        TX_NOX,
+                        IA_PM2.5,
+                        IA_SO2,
+                        IA_NOX),
+                        .id = "id") %>% 
+  select(id, tau, sl)
+
+SMKResultsTable <- knitr::kable(SMKResults,
+             col.names = c("Trend","tau","2-sided pvalue"),
+             caption = "Table 2. Results of Seasonal Mann-Kendall test") %>% 
+  kable_styling(full_width = FALSE) #create bottom lines in the table
+
+SMKResultsTable
+```
+
+# Analysis
+
+## Question 1: What is the relationship between distributed renewable energy generation and the level of air pollution?
+
+We can formulate a null and alternative hypothesis for the above research question as follows:
+
+*H0: There is no change in recorded air quality with an increase in renewable energy generation in the states of California, Texas and Iowa over the period 2001 - 2021.\
+Ha: There is a change in recorded air quality with an increase in renewable energy generation in the states of California, Texas and Iowa over the period 2001 - 2021.*
+
+To evaluate this hypothesis, we generated plots of mean pollutant concentrations measured against net monthly solar and wind generation for all three states.
+
+```{r variableVisualizationPlots, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold", out.width="50%", fig.cap="Figure 7. Mean Pollutant Concentrations Measured against Net Monthly Solar and Wind Generation }
+
+print(visualizeVariables('CA','PM2.5 - Local Conditions')[[2]])
+
+print(visualizeVariables('TX','PM2.5 - Local Conditions')[[2]])
+
+print(visualizeVariables('IA','PM2.5 - Local Conditions')[[2]])
+
+print(visualizeVariables('CA','Sulfur dioxide')[[2]])
+
+print(visualizeVariables('TX','Sulfur dioxide')[[2]])
+
+print(visualizeVariables('IA','Sulfur dioxide')[[2]])
+
+print(visualizeVariables('CA','Nitrogen dioxide (NO2)')[[2]])
+
+print(visualizeVariables('TX','Nitrogen dioxide (NO2)')[[2]])
+
+print(visualizeVariables('IA','Nitrogen dioxide (NO2)')[[2]])
+
+```
+
+The figures above suggest that there is an inverse or negative correlation between the measured levels of pollutants and net generation from solar and wind sources. This means that as the amount of energy generated from these sources increases, the quantity of the three criteria pollutants decreases. To investigate this further, we performed a simple linear regression analysis between the mean quantity of each pollutant and net energy generation. We recognized that there are other factors such as population growth, economic activities, and policy changes that might affect air quality, leading to biases in the linear regression model. To account for these factors, error terms were used in the models. You can find the results of the simple linear regression analysis in Table 3.
+
+```{r SimpleLinearRegression, echo=FALSE, message=FALSE, warning=FALSE}
+#simple linear regression
+PM25.CA.regression <- lm(
+  data = df_CA.energy.air.data.PM2.5,
+  MeanPM25 ~ NetGeneration)
+
+SO2.CA.regression <- lm(
+  data = df_CA.energy.air.data.SO2,
+  MeanSO2 ~ NetGeneration)
+
+NOX.CA.regression <- lm(
+  data = df_CA.energy.air.data.NOX,
+  MeanNO2 ~ NetGeneration)
+
+
+#create a summary table
+#CA
+CA.t1 <- tbl_regression(PM25.CA.regression,
+                        label = list(NetGeneration ~ "Net Generation")) %>% 
+  bold_p() %>% 
+  add_glance_table(
+    label = list(sigma ~ "\U03C3"),
+    include = c(r.squared, AIC, sigma)
+  )
+CA.t2 <- tbl_regression(SO2.CA.regression,
+                        label = list(NetGeneration ~ "Net Generation")) %>% 
+  bold_p() %>% 
+  add_glance_table(
+    label = list(sigma ~ "\U03C3"),
+    include = c(r.squared, AIC, sigma)
+  )
+CA.t3 <- tbl_regression(NOX.CA.regression,
+                        label = list(NetGeneration ~ "Net Generation")) %>% 
+  bold_p() %>% 
+  add_glance_table(
+    label = list(sigma ~ "\U03C3"),
+    include = c(r.squared, AIC, sigma)
+  )
+
+tbl_merge_CA <-
+  tbl_merge(
+    tbls = list(CA.t1, CA.t2, CA.t3),
+    tab_spanner = c("**PM2.5**", "**SO2**", "**NO2**")
+  )
+
+#TX
+PM25.TX.regression <- lm(
+  data = df_TX.energy.air.data.PM2.5,
+  MeanPM25 ~ NetGeneration)
+
+SO2.TX.regression <- lm(
+  data = df_TX.energy.air.data.SO2,
+  MeanSO2 ~ NetGeneration)
+
+NOX.TX.regression <- lm(
+  data = df_TX.energy.air.data.NOX,
+  MeanNO2 ~ NetGeneration)
+
+
+TX.t1 <- tbl_regression(PM25.TX.regression,
+                        label = list(NetGeneration ~ "Net Generation")) %>% 
+  bold_p() %>% 
+  add_glance_table(
+    label = list(sigma ~ "\U03C3"),
+    include = c(r.squared, AIC, sigma)
+  )
+TX.t2 <- tbl_regression(SO2.TX.regression,
+                        label = list(NetGeneration ~ "Net Generation")) %>%
+  bold_p() %>% 
+  add_glance_table(
+    label = list(sigma ~ "\U03C3"),
+    include = c(r.squared, AIC, sigma)
+  )
+TX.t3 <- tbl_regression(NOX.TX.regression,
+                        label = list(NetGeneration ~ "Net Generation")) %>%
+  bold_p() %>% 
+  add_glance_table(
+    label = list(sigma ~ "\U03C3"),
+    include = c(r.squared, AIC, sigma)
+  )
+
+tbl_merge_TX <-
+  tbl_merge(
+    tbls = list(TX.t1, TX.t2, TX.t3),
+    tab_spanner = c("**PM2.5**", "**SO2**", "**NO2**")
+  )
+
+#IA
+PM25.IA.regression <- lm(
+  data = df_IA.energy.air.data.PM2.5,
+  MeanPM25 ~ NetGeneration)
+
+SO2.IA.regression <- lm(
+  data = df_IA.energy.air.data.SO2,
+  MeanSO2 ~ NetGeneration)
+
+NOX.IA.regression <- lm(
+  data = df_IA.energy.air.data.NOX,
+  MeanNO2 ~ NetGeneration)
+
+IA.t1 <- tbl_regression(PM25.IA.regression,
+                        label = list(NetGeneration ~ "Net Generation")) %>%
+  bold_p() %>% 
+  add_glance_table(
+    label = list(sigma ~ "\U03C3"),
+    include = c(r.squared, AIC, sigma)
+  )
+IA.t2 <- tbl_regression(SO2.IA.regression,
+                        label = list(NetGeneration ~ "Net Generation")) %>%
+  bold_p() %>% 
+  add_glance_table(
+    label = list(sigma ~ "\U03C3"),
+    include = c(r.squared, AIC, sigma)
+  )
+IA.t3 <- tbl_regression(NOX.IA.regression,
+                        label = list(NetGeneration ~ "Net Generation")) %>%
+  bold_p() %>% 
+  add_glance_table(
+    label = list(sigma ~ "\U03C3"),
+    include = c(r.squared, AIC, sigma)
+  )
+
+
+tbl_merge_IA <-
+  tbl_merge(
+    tbls = list(IA.t1, IA.t2, IA.t3),
+    tab_spanner = c("**PM2.5**", "**SO2**", "**NO2**")
+  ) 
+
+#combine tables 
+tbl_stack_regressionTables <-
+  tbl_stack(list(tbl_merge_CA, tbl_merge_TX, tbl_merge_IA),
+            group_header = c("California", "Texas", "Iowa"))
+
+tbl_stack_regressionTables
+
+```
+
+**PM2.5 and Renewable Generation**
+
+A unit increase in renewable generation is associated with 0.77, 0.28, and 1.3 unit decrease in PM2.5 concentration California, Texas and Iowa respectively. Assuming a confidence interval of 0.05, the p values are less than our confidence level which implies that the results are statistically significant and there is a significant negative correlation between PM2.5 concentration and renewable energy generation. Based on the R-squared values, 8.8%, 17.7% and 21.4% of the total variance in PM2.5 concentration in California, Texas and Iowa respectively can be explained by renewable energy generation.
+
+**SO2 and Renewable Generation**
+
+A unit increase in renewable generation is associated with 0.21, 0.09 and 0.64 unit decrease in SO2 concentration California, Texas and Iowa respectively. Assuming a confidence interval of 0.05, the p values are less than our confidence level which implies that the results are statistically significant and there is a significant negative correlation between SO2 concentration and renewable energy generation. Based on the R-squared values, 44.5%, 21.3% and 42.3% of the total variance in SO2 concentration in California, Texas and Iowa respectively can be explained by renewable energy generation.
+
+**NO2 and Renewable Generation**
+
+A unit increase in renewable generation is associated with 1.8, 0.47 and 1.5 unit decrease in NO2 concentration California, Texas and Iowa respectively. Assuming a confidence interval of 0.05, the p values are less than our confidence level which implies that the results are statistically significant and there is a significant negative correlation between NO2 concentration and renewable energy generation. Based on the R-squared values, 46.4%, 25.5% and 35.2% of the total variance in NO2 concentration in California, Texas and Iowa respectively can be explained by renewable energy generation.
+
+In conclusion, these observations suggest that increased production of renewable energy may lead to decreased emissions of PM2.5, SO2, and NO2, which are pollutants typically associated with the combustion of fossil fuels.
+
+### Multiple Linear Regression Results (notes: multiple linear regression might be suitable if we have other variables such as popolation, policy changes, etc.)
+
+```{r MultipleLinearRegression, echo=FALSE, message=FALSE, warning=FALSE}
+
+PM25.CA.regression <- lm(
+  data = df_CA.energy.air.data.PM2.5,
+  MeanPM25 ~ NetGeneration + Month + Year)
+
+SO2.CA.regression <- lm(
+  data = df_CA.energy.air.data.SO2,
+  MeanSO2 ~ NetGeneration + Month + Year)
+
+NOX.CA.regression <- lm(
+  data = df_CA.energy.air.data.NOX,
+  MeanNO2 ~ NetGeneration + Month + Year)
+
+CA.t1 <- tbl_regression(PM25.CA.regression,
+                        label = list(NetGeneration ~ "Net Generation")) %>% 
+  bold_p() %>% 
+  add_glance_table(
+    label = list(sigma ~ "\U03C3"),
+    include = c(r.squared, AIC, sigma)
+  )
+CA.t2 <- tbl_regression(SO2.CA.regression,
+                        label = list(NetGeneration ~ "Net Generation")) %>% 
+  bold_p() %>% 
+  add_glance_table(
+    label = list(sigma ~ "\U03C3"),
+    include = c(r.squared, AIC, sigma)
+  )
+CA.t3 <- tbl_regression(NOX.CA.regression,
+                        label = list(NetGeneration ~ "Net Generation")) %>% 
+  bold_p() %>% 
+  add_glance_table(
+    label = list(sigma ~ "\U03C3"),
+    include = c(r.squared, AIC, sigma)
+  )
+
+tbl_merge_CA <-
+  tbl_merge(
+    tbls = list(CA.t1, CA.t2, CA.t3),
+    tab_spanner = c("**PM2.5**", "**SO2**", "**NO2**")
+  )
+
+PM25.TX.regression <- lm(
+  data = df_TX.energy.air.data.PM2.5,
+  MeanPM25 ~ NetGeneration + Month + Year)
+
+SO2.TX.regression <- lm(
+  data = df_TX.energy.air.data.SO2,
+  MeanSO2 ~ NetGeneration + Month + Year)
+
+NOX.TX.regression <- lm(
+  data = df_TX.energy.air.data.NOX,
+  MeanNO2 ~ NetGeneration + Month + Year)
+
+
+TX.t1 <- tbl_regression(PM25.TX.regression,
+                        label = list(NetGeneration ~ "Net Generation")) %>% 
+  bold_p() %>% 
+  add_glance_table(
+    label = list(sigma ~ "\U03C3"),
+    include = c(r.squared, AIC, sigma)
+  )
+TX.t2 <- tbl_regression(SO2.TX.regression,
+                        label = list(NetGeneration ~ "Net Generation")) %>%
+  bold_p() %>% 
+  add_glance_table(
+    label = list(sigma ~ "\U03C3"),
+    include = c(r.squared, AIC, sigma)
+  )
+TX.t3 <- tbl_regression(NOX.TX.regression,
+                        label = list(NetGeneration ~ "Net Generation")) %>%
+  bold_p() %>% 
+  add_glance_table(
+    label = list(sigma ~ "\U03C3"),
+    include = c(r.squared, AIC, sigma)
+  )
+
+tbl_merge_TX <-
+  tbl_merge(
+    tbls = list(TX.t1, TX.t2, TX.t3),
+    tab_spanner = c("**PM2.5**", "**SO2**", "**NO2**")
+  )
+
+
+PM25.IA.regression <- lm(
+  data = df_IA.energy.air.data.PM2.5,
+  MeanPM25 ~ NetGeneration + Month + Year)
+
+SO2.IA.regression <- lm(
+  data = df_IA.energy.air.data.SO2,
+  MeanSO2 ~ NetGeneration + Month + Year)
+
+NOX.IA.regression <- lm(
+  data = df_IA.energy.air.data.NOX,
+  MeanNO2 ~ NetGeneration + Month + Year)
+
+IA.t1 <- tbl_regression(PM25.IA.regression,
+                        label = list(NetGeneration ~ "Net Generation")) %>%
+  bold_p() %>% 
+  add_glance_table(
+    label = list(sigma ~ "\U03C3"),
+    include = c(r.squared, AIC, sigma)
+  )
+IA.t2 <- tbl_regression(SO2.IA.regression,
+                        label = list(NetGeneration ~ "Net Generation")) %>%
+  bold_p() %>% 
+  add_glance_table(
+    label = list(sigma ~ "\U03C3"),
+    include = c(r.squared, AIC, sigma)
+  )
+IA.t3 <- tbl_regression(NOX.IA.regression,
+                        label = list(NetGeneration ~ "Net Generation")) %>%
+  bold_p() %>% 
+  add_glance_table(
+    label = list(sigma ~ "\U03C3"),
+    include = c(r.squared, AIC, sigma)
+  )
+
+
+tbl_merge_IA <-
+  tbl_merge(
+    tbls = list(IA.t1, IA.t2, IA.t3),
+    tab_spanner = c("**PM2.5**", "**SO2**", "**NO2**")
+  ) 
+
+tbl_stack_regressionTables <-
+  tbl_stack(list(tbl_merge_CA, tbl_merge_TX, tbl_merge_IA),
+            group_header = c("California", "Texas", "Iowa"))
+
+tbl_stack_regressionTables
+
+```
+
+## Question 2: Among three air quality indicators (PM2.5, NO2, and SO2), which display the most significant response to variations in energy generation?
+
+We can formulate a null and alternative hypothesis for the above research question as follows:
+
+*H0: There has been a uniform impact on all three air quality indicator by an increase in renewable energy generation in the states of California, Texas and Iowa over the period 2001 - 2021.\
+Ha: There has not been a uniform impact on all three air quality indicator by an increase in renewable energy generation in the states of California, Texas and Iowa over the period 2001 - 2021.*
+
+To evaluate the above research question, we plotted the distribution of quantity of the pollutants over time as demonstrated in the box plots below.
+
+```{r Boxplots, echo=FALSE, message=FALSE, warning=FALSE, fig.cap="Figure 8. Distribution of Pollutant Levels across States",fig.width = 12, fig.align='center'}
+
+# PM2.5
+ggplot(df_PM2.5_top3, aes(x = Year,
+                          y = Mean,
+                          color = State)) +
+  geom_boxplot() +
+  labs(title = "Distribution of PM2.5 Levels Across States",
+       x = "Year",
+       y = "PM2.5 Concentration (µg/m³)",
+       color = "State") +
+  theme(legend.position = "bottom")
+
+
+# NO2
+ggplot(df_NO2_top3, aes(x = Year,
+                        y = Mean,
+                        color = State)) +
+  geom_boxplot() +
+  labs(title = "Distribution of NO2 Levels Across States",
+       x = "Year",
+       y = "NO2 Concentration (ppb)",
+       color = "State") +
+  theme(legend.position = "bottom")
+
+# SO2
+
+ggplot(df_SO2_top3, aes(x = Year,
+                        y = Mean,
+                        color = State)) +
+  geom_boxplot() +
+  labs(title = "Distribution of SO2 Levels Across States",
+       x = "Year",
+       y = "SO2 Concentration (ppb)",
+       color = "State") +
+  theme(legend.position = "bottom")
+
+# PM10 
+#ggplot(df_PM10_top3, aes(x = State, y = Mean, fill = State)) +
+#  geom_boxplot() +
+#  labs(title = "Distribution of PM10 Levels Across States",
+#       x = "State",
+#       y = "PM10 Concentration (µg/m³)") +
+#  theme_minimal() +
+#  theme(legend.position = "none")
+
+# CO
+#ggplot(df_CO_top3, aes(x = State, y = Mean, fill = State)) +
+#  geom_boxplot() +
+#  labs(title = "Distribution of CO Levels Across States",
+#       x = "State",
+#       y = "CO Concentration (ppm)") +
+#  theme_minimal() +
+#  theme(legend.position = "none")
+```
+
+**PM2.5 Levels**
+
+The distribution of PM2.5 levels varies widely between states. California shows a particularly high range of PM2.5 concentrations with notable outliers, indicating episodes of very poor air quality. It's important to look into the reasons for California's variability, such as wildfires or urban pollution.
+
+**NO2 Levels**
+
+NO2 levels are somewhat variable, with California showing a higher median concentration. This might be associated with industrial activities or high traffic density.
+
+**SO2 Levels**
+
+Iowa has historically had a higher range of SO2 concentrations which have fluctuated over time and trended downwards. This pollutant is often associated with industrial processes and the burning of sulfur-containing fuels such as coal. The coal mining and energy generation activity in Iowa could explain the relatively higher concentrations of SO2 measure relative to California and Texas.
+
+# Summary and Conclusions
+
+According to our analysis, renewable energy generation in the United States has shown a general upward trend over time, indicating increased adoption and capacity. California (CA) has been leading the pack with a significantly higher generation, especially with a steep increase around 2020. Other states have also shown growth in renewable energy generation but to varying degrees, with Texas (TX) and Iowa (IA) exhibiting notable increases. The variability in generation over time could be influenced by factors such as state policies, technological advancements, and investment in renewable energy infrastructure. The overall increasing trend is in line with global efforts to transition to cleaner energy sources to reduce reliance on fossil fuels and combat climate change.
+
+Furthermore, our analysis suggests that the measured value of pollutants has a negative correlation or inverse relationship with net generation from solar and wind in the three states. This means that the higher the amount of energy generated from wind and solar, the lower the amount of the three criteria pollutants. This is a promising indication that the use of renewable energy sources has a positive impact on reducing harmful emissions and promoting a cleaner environment. However, it's important to acknowledge that there may be other factors at play that can affect air quality. Further analysis is needed to better understand the interrelationship between renewable energy generation and other factors such as transportation and industrial activities. Nonetheless, our findings provide valuable insights into the potential benefits of adopting renewable energy sources in reducing harmful emissions and improving air quality.
+
+# References
+
+Air Pollution. <https://education.nationalgeographic.org/resource/air-pollution>. Accessed 6 Dec. 2023.
+
+Bridges, A., Felder, F. A., McKelvey, K., & Niyogi, I. (2015). Uncertainty in energy planning: Estimating the health impacts of air pollution from fossil fuel electricity generation. Energy Research & Social Science, 6, 74-77.
+
+Environmental Impacts of Renewable Energy Technologies \| Union of Concerned Scientists. <https://www.ucsusa.org/resources/environmental-impacts-renewable-energy-technologies>. Accessed 6 Dec. 2023.
+
+Kabeyi, Moses Jeremiah Barasa, and Oludolapo Akanni Olanrewaju. 'Sustainable Energy Transition for Renewable and Low Carbon Grid Electricity Generation and Supply'. Frontiers in Energy Research, vol. 9, 2022. Frontiers, <https://www.frontiersin.org/articles/10.3389/fenrg.2021.743114>.
+
+Perera FP. 2017. Multiple threats to child health from fossil fuel combustion: Impacts of air pollution and climate change. Environmental Health Perspectives 125:141-148.
+
+Perera, F., Ashrafi, A., Kinney, P., & Mills, D. (2019). Towards a fuller assessment of benefits to children's health of reducing air pollution and mitigating climate change due to fossil fuel combustion. Environmental research, 172, 55-72.
