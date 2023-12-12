@@ -139,11 +139,11 @@ The hypothesis underlying this research is that an increase in renewable energy 
 
 ## Research Questions
 
-**1: What is the relationship between distributed renewable energy generation and the level of air pollution?**
+**1. What is the relationship between distributed renewable energy generation and the level of air pollution?**
 
 This question aims to investigate the correlation between the rise in renewable energy generation and the concentrations of various air pollutants. It seeks to understand whether regions with higher renewable energy output exhibit lower levels of air pollutants.
 
-**2: Among air quality indicators (PM2.5, NO2, and SO2), which display the most significant response to variations in energy generation?**
+**2. Among air quality indicators (PM2.5, NO2, and SO2), which display the most significant response to variations in energy generation?**
 
 This question delves deeper into identifying which specific pollutants are most responsive to changes in energy generation types. It is crucial for pinpointing the environmental benefits of renewable energy sources and for policy-making aimed at targeted air pollution reduction.
 
@@ -423,7 +423,6 @@ ggplot(df_NO2_top3, aes(x =Date, y = Mean, color=State)) +
   theme(plot.title = element_text(hjust = 0.5))
 ```
 
-
 ```{r Variable Visualization Function, echo=FALSE, message=FALSE, warning=FALSE}
 
 visualizeVariables <- function(selected_state, selected_pollutant){
@@ -570,6 +569,7 @@ plot(IA.PM2.5.monthly.data.decomp, main = "PM2.5 in Iowa")
 plot(IA.SO2.monthly.data.decomp, main = "SO2 in Iowa")
 plot(IA.NOX.monthly.data.decomp, main = "NO2 in Iowa")
 ```
+
 ```{r Monotonic Trend Analysis, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold", out.width="50%", fig.align='center'}
 
 # Running the seasonal Mann-Kendall test
@@ -621,8 +621,8 @@ SMKResultsTable
 
 We can formulate a null and alternative hypothesis for the above research question as follows:
 
-> H0: There is no change in recorded air quality with an increase in renewable energy generation in the states of California, Texas and Iowa over the period 2001 - 2021.\
-> Ha: There is a change in recorded air quality with an increase in renewable energy generation in the states of California, Texas and Iowa over the period 2001 - 2021.
+*H0: There is no change in recorded air quality with an increase in renewable energy generation in the states of California, Texas and Iowa over the period 2001 - 2021.\
+Ha: There is a change in recorded air quality with an increase in renewable energy generation in the states of California, Texas and Iowa over the period 2001 - 2021.*
 
 To evaluate this hypothesis, we generated plots of mean pollutant concentrations measured against net monthly solar and wind generation for all three states.
 
@@ -648,9 +648,7 @@ print(visualizeVariables('IA','Nitrogen dioxide (NO2)')[[2]])
 
 ```
 
-The figures above suggest that there is an inverse or negative correlation between the measured levels of pollutants and net generation from solar and wind sources. This means that as the amount of energy generated from these sources increases, the quantity of the three criteria pollutants decreases. To investigate this further, we performed a simple linear regression analysis between the mean quantity of each pollutant and net energy generation. The results of this analysis are presented in Table 3. 
-
-### Simple Linear Regression Results
+The figures above suggest that there is an inverse or negative correlation between the measured levels of pollutants and net generation from solar and wind sources. This means that as the amount of energy generated from these sources increases, the quantity of the three criteria pollutants decreases. To investigate this further, we performed a simple linear regression analysis between the mean quantity of each pollutant and net energy generation. We recognized that there are other factors such as population growth, economic activities, and policy changes that might affect air quality, leading to biases in the linear regression model. To account for these factors, error terms were used in the models. You can find the results of the simple linear regression analysis in Table 3.
 
 ```{r SimpleLinearRegression, echo=FALSE, message=FALSE, warning=FALSE}
 #simple linear regression
@@ -790,24 +788,21 @@ tbl_stack_regressionTables
 
 ```
 
+**PM2.5 and Renewable Generation**
 
-#### PM2.5 and Net Generation
+A unit increase in renewable generation is associated with 0.77, 0.28, and 1.3 unit decrease in PM2.5 concentration California, Texas and Iowa respectively. Assuming a confidence interval of 0.05, the p values are less than our confidence level which implies that the results are statistically significant and there is a significant negative correlation between PM2.5 concentration and renewable energy generation. Based on the R-squared values, 8.8%, 17.7% and 21.4% of the total variance in PM2.5 concentration in California, Texas and Iowa respectively can be explained by renewable energy generation.
 
-The beta coefficient of net renewable energy generation which is the slope of the regression line estimating the relationship between PM2.5 concentration and renewable energy generation is -0.77, -0.28 and -1.3 respectively for California, Texas and Iowa. This implies that an increase in solar and wind energy generation is resulting in a decrease in concentrations of PM2.5. Assuming a confidence interval of 0.05, the p values are less than our confidence level which implies that the results are statistically significant and there is a significant negative correlation between PM2.5 concentration and renewable energy generation. Based on the R-squared values, 8.8%, 17.7% and 21.4% of the total variance in PM2.5 concentration in California, Texas and Iowa respectively can be explained by renewable energy generation.
+**SO2 and Renewable Generation**
 
-#### Sulfur Dioxide (SO2) and Net Generation:
+A unit increase in renewable generation is associated with 0.21, 0.09 and 0.64 unit decrease in SO2 concentration California, Texas and Iowa respectively. Assuming a confidence interval of 0.05, the p values are less than our confidence level which implies that the results are statistically significant and there is a significant negative correlation between SO2 concentration and renewable energy generation. Based on the R-squared values, 44.5%, 21.3% and 42.3% of the total variance in SO2 concentration in California, Texas and Iowa respectively can be explained by renewable energy generation.
 
-The beta coefficient of net renewable energy generation which is the slope of the regression line estimating the relationship between SO2 concentration and renewable energy generation is -0.21, -0.09 and -0.64 respectively for California, Texas and Iowa. This implies that an increase in solar and wind energy generation is resulting in a decrease in concentrations of SO2. Assuming a confidence interval of 0.05, the p values are less than our confidence level which implies that the results are statistically significant and there is a significant negative correlation between SO2 concentration and renewable energy generation. Based on the R-squared values, 44.5%, 21.3% and 42.3% of the total variance in SO2 concentration in California, Texas and Iowa respectively can be explained by renewable energy generation.
+**NO2 and Renewable Generation**
 
-#### Nitrogen Dioxide (NO2) and Net Generation:
+A unit increase in renewable generation is associated with 1.8, 0.47 and 1.5 unit decrease in NO2 concentration California, Texas and Iowa respectively. Assuming a confidence interval of 0.05, the p values are less than our confidence level which implies that the results are statistically significant and there is a significant negative correlation between NO2 concentration and renewable energy generation. Based on the R-squared values, 46.4%, 25.5% and 35.2% of the total variance in NO2 concentration in California, Texas and Iowa respectively can be explained by renewable energy generation.
 
-The beta coefficient of net renewable energy generation which is the slope of the regression line estimating the relationship between NO2 concentration and renewable energy generation is -1.8, -0.47 and -1.5 respectively for California, Texas and Iowa. This implies that an increase in solar and wind energy generation is resulting in a decrease in concentrations of NO2. Assuming a confidence interval of 0.05, the p values are less than our confidence level which implies that the results are statistically significant and there is a significant negative correlation between NO2 concentration and renewable energy generation. Based on the R-squared values, 46.4%, 25.5% and 35.2% of the total variance in NO2 concentration in California, Texas and Iowa respectively can be explained by renewable energy generation.
+In conclusion, these observations suggest that increased production of renewable energy may lead to decreased emissions of PM2.5, SO2, and NO2, which are pollutants typically associated with the combustion of fossil fuels.
 
-So, in conclusion, these observations suggest an inverse relationship where increased renewable energy generation could be associated with decreased emissions of PM2.5, SO2 and NO2, which are pollutants typically associated with the combustion of fossil fuels. 
-assume there is no other factors 
-
-### Multiple Linear Regression Results
-# notes: multiple linear regression might be suitable if we have other variables such as popolation, policy changes, etc. 
+### Multiple Linear Regression Results (notes: multiple linear regression might be suitable if we have other variables such as popolation, policy changes, etc.)
 
 ```{r MultipleLinearRegression, echo=FALSE, message=FALSE, warning=FALSE}
 
@@ -942,18 +937,16 @@ tbl_stack_regressionTables
 
 ```
 
-###Question 2:Among three air quality indicators (PM2.5, NO2, and SO2), which display the most significant response to variations in energy generation?
+## Question 2: Among three air quality indicators (PM2.5, NO2, and SO2), which display the most significant response to variations in energy generation?
 
 We can formulate a null and alternative hypothesis for the above research question as follows:
 
-> H0: There has been a uniform impact on all three air quality indicator by an increase in renewable energy generation in the states of California, Texas and Iowa over the period 2001 - 2021.\
-> Ha: There has not been a uniform impact on all three air quality indicator by an increase in renewable energy generation in the states of California, Texas and Iowa over the period 2001 - 2021.
+*H0: There has been a uniform impact on all three air quality indicator by an increase in renewable energy generation in the states of California, Texas and Iowa over the period 2001 - 2021.\
+Ha: There has not been a uniform impact on all three air quality indicator by an increase in renewable energy generation in the states of California, Texas and Iowa over the period 2001 - 2021.*
 
 To evaluate the above research question, we plotted the distribution of quantity of the pollutants over time as demonstrated in the box plots below.
 
-```{r Boxplots, echo=FALSE, message=FALSE, warning=FALSE, fig.width = 12}
-#Box Plot for Comparing Distributions of a Single Pollutant Across Multiple States:
-
+```{r Boxplots, echo=FALSE, message=FALSE, warning=FALSE, fig.cap="Figure 8. Distribution of Pollutant Levels across States",fig.width = 12, fig.align='center'}
 
 # PM2.5
 ggplot(df_PM2.5_top3, aes(x = Year,
@@ -966,18 +959,8 @@ ggplot(df_PM2.5_top3, aes(x = Year,
        color = "State") +
   theme(legend.position = "bottom")
 
-# CO
-
-#ggplot(df_CO_top3, aes(x = State, y = Mean, fill = State)) +
-#  geom_boxplot() +
-#  labs(title = "Distribution of CO Levels Across States",
-#       x = "State",
-#       y = "CO Concentration (ppm)") +
-#  theme_minimal() +
-#  theme(legend.position = "none")
 
 # NO2
-
 ggplot(df_NO2_top3, aes(x = Year,
                         y = Mean,
                         color = State)) +
@@ -987,16 +970,6 @@ ggplot(df_NO2_top3, aes(x = Year,
        y = "NO2 Concentration (ppb)",
        color = "State") +
   theme(legend.position = "bottom")
-
-# PM10 
-
-#ggplot(df_PM10_top3, aes(x = State, y = Mean, fill = State)) +
-#  geom_boxplot() +
-#  labs(title = "Distribution of PM10 Levels Across States",
-#       x = "State",
-#       y = "PM10 Concentration (µg/m³)") +
-#  theme_minimal() +
-#  theme(legend.position = "none")
 
 # SO2
 
@@ -1010,39 +983,53 @@ ggplot(df_SO2_top3, aes(x = Year,
        color = "State") +
   theme(legend.position = "bottom")
 
+# PM10 
+#ggplot(df_PM10_top3, aes(x = State, y = Mean, fill = State)) +
+#  geom_boxplot() +
+#  labs(title = "Distribution of PM10 Levels Across States",
+#       x = "State",
+#       y = "PM10 Concentration (µg/m³)") +
+#  theme_minimal() +
+#  theme(legend.position = "none")
 
+# CO
+#ggplot(df_CO_top3, aes(x = State, y = Mean, fill = State)) +
+#  geom_boxplot() +
+#  labs(title = "Distribution of CO Levels Across States",
+#       x = "State",
+#       y = "CO Concentration (ppm)") +
+#  theme_minimal() +
+#  theme(legend.position = "none")
 ```
 
-### Interpretation of the Boxplots
+**PM2.5 Levels**
 
-From the boxplots, we noted the following:
+The distribution of PM2.5 levels varies widely between states. California shows a particularly high range of PM2.5 concentrations with notable outliers, indicating episodes of very poor air quality. It's important to look into the reasons for California's variability, such as wildfires or urban pollution.
 
-PM2.5 Levels: The distribution of PM2.5 levels varies widely between states. California shows a particularly high range of PM2.5 concentrations with notable outliers, indicating episodes of very poor air quality. It's important to look into the reasons for California's variability, such as wildfires or urban pollution.
+**NO2 Levels**
 
-NO2 Levels: NO2 levels are somewhat variable, with California showing a higher median concentration. This could be associated with industrial activities or high traffic density.
+NO2 levels are somewhat variable, with California showing a higher median concentration. This might be associated with industrial activities or high traffic density.
 
-SO2 Levels: Iowa has historically had a higher range of SO2 concentrations which have fluctuated over time and trended downwards. This pollutant is often associated with industrial processes and the burning of sulfur-containing fuels such as coal. The coal mining and energy generation activity in Iowa could explain the relatively higher concentrations of SO2 measure relative to California and Texas.
+**SO2 Levels**
 
-\newpage
+Iowa has historically had a higher range of SO2 concentrations which have fluctuated over time and trended downwards. This pollutant is often associated with industrial processes and the burning of sulfur-containing fuels such as coal. The coal mining and energy generation activity in Iowa could explain the relatively higher concentrations of SO2 measure relative to California and Texas.
 
 # Summary and Conclusions
 
-As shown in the analysis, there has been a general upward trend of renewable energy generation over time in the United States, indicating increased adoption and capacity over time. California (CA) stands out with a significantly higher generation, especially with a steep increase around 2020. Other states also show growth in renewable energy generation but to varying degrees. For instance, Texas (TX) and Iowa (IA) show notable increases. The variability in generation over time could be influenced by factors like state policies, technological advancements, and investment in renewable energy infrastructure.The overall increasing trend aligns with global efforts to transition to cleaner energy sources to reduce reliance on fossil fuels and combat climate change.
+According to our analysis, renewable energy generation in the United States has shown a general upward trend over time, indicating increased adoption and capacity. California (CA) has been leading the pack with a significantly higher generation, especially with a steep increase around 2020. Other states have also shown growth in renewable energy generation but to varying degrees, with Texas (TX) and Iowa (IA) exhibiting notable increases. The variability in generation over time could be influenced by factors such as state policies, technological advancements, and investment in renewable energy infrastructure. The overall increasing trend is in line with global efforts to transition to cleaner energy sources to reduce reliance on fossil fuels and combat climate change.
 
-Our analysis suggest that the measured value of the pollutants has an inverse relationship or negative correlation with net generation from solar and wind in the three states. This implies that the higher the amount of energy generated from wind and solar, the lower the amount of the three criteria pollutants.
-
-\newpage
+Furthermore, our analysis suggests that the measured value of pollutants has a negative correlation or inverse relationship with net generation from solar and wind in the three states. This means that the higher the amount of energy generated from wind and solar, the lower the amount of the three criteria pollutants. This is a promising indication that the use of renewable energy sources has a positive impact on reducing harmful emissions and promoting a cleaner environment. However, it's important to acknowledge that there may be other factors at play that can affect air quality. Further analysis is needed to better understand the interrelationship between renewable energy generation and other factors such as transportation and industrial activities. Nonetheless, our findings provide valuable insights into the potential benefits of adopting renewable energy sources in reducing harmful emissions and improving air quality.
 
 # References
+
+Air Pollution. <https://education.nationalgeographic.org/resource/air-pollution>. Accessed 6 Dec. 2023.
+
+Bridges, A., Felder, F. A., McKelvey, K., & Niyogi, I. (2015). Uncertainty in energy planning: Estimating the health impacts of air pollution from fossil fuel electricity generation. Energy Research & Social Science, 6, 74-77.
+
+Environmental Impacts of Renewable Energy Technologies \| Union of Concerned Scientists. <https://www.ucsusa.org/resources/environmental-impacts-renewable-energy-technologies>. Accessed 6 Dec. 2023.
 
 Kabeyi, Moses Jeremiah Barasa, and Oludolapo Akanni Olanrewaju. 'Sustainable Energy Transition for Renewable and Low Carbon Grid Electricity Generation and Supply'. Frontiers in Energy Research, vol. 9, 2022. Frontiers, <https://www.frontiersin.org/articles/10.3389/fenrg.2021.743114>.
 
 Perera FP. 2017. Multiple threats to child health from fossil fuel combustion: Impacts of air pollution and climate change. Environmental Health Perspectives 125:141-148.
 
 Perera, F., Ashrafi, A., Kinney, P., & Mills, D. (2019). Towards a fuller assessment of benefits to children's health of reducing air pollution and mitigating climate change due to fossil fuel combustion. Environmental research, 172, 55-72.
-
-Bridges, A., Felder, F. A., McKelvey, K., & Niyogi, I. (2015). Uncertainty in energy planning: Estimating the health impacts of air pollution from fossil fuel electricity generation. Energy Research & Social Science, 6, 74-77.
-
-Environmental Impacts of Renewable Energy Technologies \| Union of Concerned Scientists. <https://www.ucsusa.org/resources/environmental-impacts-renewable-energy-technologies>. Accessed 6 Dec. 2023.
-
-Air Pollution. <https://education.nationalgeographic.org/resource/air-pollution>. Accessed 6 Dec. 2023.
