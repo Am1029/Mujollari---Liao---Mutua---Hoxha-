@@ -1,18 +1,15 @@
 ---
 title: "An Exploration of the Relationship between Air Quality and Solar & Wind Energy Generation in the United States"
+subtitle: https://github.com/Am1029/Mujollari_Liao_Mutua_Hoxha/tree/main
 author: "Mujollari A., Liao I., Mutua Mulu B., Hoxha L."
-output: html_document
+output:
+  html_document:
+    toc: true
+    css: styles.css
 ---
+
 \newpage
 \tableofcontents 
-\newpage
-\listoftables 
-\newpage
-\listoffigures 
-\newpage
-
-
-#Ina: double check the parts with "notes" before submission
 
 ```{r Install Packages, warning=FALSE, include=FALSE, echo=FALSE}
 # Set your working directory
@@ -70,6 +67,9 @@ plot_theme<- theme_classic(base_size = 12)+
   theme(
     #plot background
     plot.background = element_rect(color="white"),
+    
+    #plot boarder
+    panel.border = element_blank(),
     
     #plot title
     plot.title=element_text(color="black",hjust=0.5,vjust=1),
@@ -150,21 +150,19 @@ This question delves deeper into identifying which specific pollutants are most 
 
 # Dataset Information
 
-The exploratory analysis required the combination of air quality and power plant datasets. Air quality data in the analysis was obtained from the United States Environmental Protection Agency (EPA) while power plant data was obtained from the U.S. Energy Information Administration (EIA).Our analysis covered a period of two decades, from 2001 to 2021. The following are descriptions for each dataset and data wrangling processes. 
+The exploratory analysis required the combination of air quality and power plant datasets. Air quality data in the analysis was obtained from the United States Environmental Protection Agency (EPA) while power plant data was obtained from the U.S. Energy Information Administration (EIA).Our analysis covered a period of two decades, from 2001 to 2021. 
 
-## Air QUality Data
 EPA has established air quality standards for six pollutants which include particular matter, ozone, sulfur dioxide, nitrogen dioxide, carbon monoxide, and lead. Among these, particular matter (PM2.5), nitrogen dioxide (NO2), and sulfur dioxide (SO2) are mainly produced as by-products of fossil fuel combustion and pose significant threats to human health (Perera et al. 2019, Perera 2017, Bridges et al. 2015). Thus, this study aims to investigate the relationship between the three air quality indicators, PM2.5, NO2, and SO2, and energy generation. We downloaded the pollutants data from the EPA website that is available from 1980 to 2021 (https://aqs.epa.gov/aqsweb/airdata/download_files.html#Daily). The data is at the county level and consists of number of observation points for each county. We calculated the daily mean by state to retrieve the monthly pollutant concentrations at the state-level.
 
-## Power Plant Data
 We collected monthly and annual energy generation from power plants and power plant locations and capacities from two datasets, EIA-923 (https://www.eia.gov/electricity/data/eia923/) and EIA-860 (https://www.eia.gov/electricity/data/eia860/), respectively. The EIA-923 dataset provides us with detailed generator data such as generation, fuel consumption, and stocks. On the other hand, the EIA-860 dataset lists the capacities of power plants, including the generators that are operable, as well as the plant-level data for the surveyed generators, which includes their locations information.
 
-```{r Table: Dataset Information, echo=FALSE, message=FALSE, warning=FALSE,fig.cap="Table: Dataset Information for the Sample Period 2001 - 2021"}
+```{r Table: Dataset Information, echo=FALSE, message=FALSE, warning=FALSE}
 dataset_info<- data.frame(
   Dataset = c("Air Quality Summary Statistics by Criteria Pollutants and Location","Power Plant Generator Level Capacities and Locations","Power Plant Monthly Energy Generation "),
   Source = c("EPA Air Quality System (AQS) ","EIA Form EIA-860","EIA Form EIA-923"),
   Variables = c("Monthly PM2.5, SO2, and NO2 Concentrations","Annual Installed Generation Capacity by Fuel Type","Monthly Net Generation by Fuel Type"))
 
-info_table<-knitr::kable(dataset_info)%>%
+info_table<-knitr::kable(dataset_info,caption = "Table 1. Dataset Information for the Sample Period 2001 - 2021")%>%
   kable_styling(full_width = FALSE) #create bottom lines in the table
 
 info_table
@@ -199,7 +197,7 @@ df_generation_annual <- df_generation_monthly %>%
   summarise(NetGeneration = sum(NetGeneration))
 ```
 
-```{r Visualization: Installed Capacity,echo=FALSE, message=FALSE, warning=FALSE,fig.cap="Figure. Annual Installed Generation Capacity: Solar and Wind (MW)",out.height="30%"}
+```{r Visualization: Installed Generation Capacity,echo=FALSE, message=FALSE, warning=FALSE,fig.cap="Figire 1. Annual Installed Generation Capacity: Solar and Wind (MW)", out.width="50%",out.height="50%"}
 df_plantcapacities_locations %>%
   group_by(STATE, YEAR) %>% 
   summarise(CAPACITY = sum(CAPACITY)) %>%
@@ -214,7 +212,7 @@ df_plantcapacities_locations %>%
   gghighlight(max(CAPACITY)>12000) #only highlight top 3 states with different colors
 ```
 
-```{r Visualization: Annual Generation,echo=FALSE, message=FALSE, warning=FALSE,fig.cap="Figure. Annual Solar and Wind Energy Generation over time (TWh)",out.height="30%"}
+```{r Visualization: Annual Generation,echo=FALSE, message=FALSE, warning=FALSE,fig.cap="Figire 2. Annual Solar and Wind Energy Generation over time (TWh)", out.width="50%",out.height="50%"}
 df_generation_annual %>% 
   ggplot(aes(x=Year,
              y=NetGeneration,
@@ -227,7 +225,7 @@ df_generation_annual %>%
   scale_color_viridis_d() 
 ```
 
-```{r Visualization: Monthly Generation,echo=FALSE, message=FALSE, warning=FALSE,fig.cap="Figure. Monthly Renewable Energy Generation per State (TWh)",out.height="30%"}
+```{r Visualization: Monthly Generation,echo=FALSE, message=FALSE, warning=FALSE,fig.cap="Figire 3. Monthly Renewable Energy Generation per State (TWh)", out.width="50%",out.height="50%"}
 df_generation_monthly %>%
   ggplot(aes(x=Date,
              y=NetGeneration,
@@ -240,9 +238,9 @@ df_generation_monthly %>%
   scale_color_viridis_d()
 ```
   
-The change in installed solar and wind plants can be also be visualized spatially across the contiguous United States as illustrated below. From the map, we note that the number of installed solar and wind plants increased significantly over the two decades from 2001 to 2021.  
+The change in installed solar and wind plants can be also be visualized spatially across the contiguous United States as illustrated below. From the map, we note that the number of installed solar and wind plants increased significantly over the two decades from 2001 to 2021.
 
-```{r Visualization: Exploratory Spatial, echo=FALSE, message=FALSE, warning=FALSE,fig.cap="Figure. Solar and Wind Power Plants Locations", out.width="100%"}
+```{r Visualization: Exploratory Spatial, echo=FALSE, message=FALSE, warning=FALSE,fig.cap="Figure 4. Solar and Wind Power Plants Locations", out.width="100%"}
 
 df_plantcapacities_locations_sf_2001 <- df_plantcapacities_locations %>%
   na.omit() %>%
@@ -336,7 +334,7 @@ animated_map_IA <- ggplot() +
   shadow_mark()
 ```
 
-```{r Create GIF, echo=FALSE, message=FALSE, warning=FALSE,fig.show="hold",fig.cap="Figure. Solar and Wind Power Plant Locations"}
+```{r Create GIF, echo=FALSE, message=FALSE, warning=FALSE,fig.show="hold",fig.cap="Figure. Solar and Wind Insatlled Capacities over Time"}
 
 #CA_gif <- animate(animated_map_CA, renderer = gifski_renderer(), fps = 20, duration = 30) 
 #TX_gif <- animate(animated_map_TX, renderer = gifski_renderer(), fps = 20, duration = 30)
@@ -344,28 +342,25 @@ animated_map_IA <- ggplot() +
  
 
 # Create GIF
-CA_gif <- animate(animated_map_CA, width = 300, height = 300) 
-TX_gif <- animate(animated_map_TX, width = 300, height = 300)
-IA_gif <- animate(animated_map_IA, width = 300, height = 300)
+#CA_gif <- animate(animated_map_CA, width = 300, height = 300) 
+#TX_gif <- animate(animated_map_TX, width = 300, height = 300)
+#IA_gif <- animate(animated_map_IA, width = 300, height = 300)
 #notes: still have error message
 
-CA_mgif <- image_read(CA_gif)
-TX_mgif <- image_read(TX_gif)
-IA_mgif <- image_read(IA_gif)
+#CA_mgif <- image_read(CA_gif)
+#TX_mgif <- image_read(TX_gif)
+#IA_mgif <- image_read(IA_gif)
 
-states_gif <- image_append(c(CA_mgif[1], TX_mgif[1], IA_mgif[1])) #combine 3 states gifs into 1 gif
+#states_gif <- image_append(c(CA_mgif[1], TX_mgif[1], IA_mgif[1])) #combine 3 states gifs into 1 gif
 
-for(i in 2:96) {
-  combined <- image_append(c(CA_mgif[i], TX_mgif[i], IA_mgif[i]))
-  states_gif <- c(states_gif, combined)
-}
+#for(i in 2:96) {
+#  combined <- image_append(c(CA_mgif[i], TX_mgif[i], IA_mgif[i]))
+#  states_gif <- c(states_gif, combined)}
 
-states_gif
+#states_gif
 ```
 
-After analyzing the increasing installed capacity of solar and wind plants in the United States, with a special focus on California, Texas, and Iowa, we proceeded to examine air quality data to determine the changes in the concentration of key criteria pollutants over time. To simplify the process, we used visualizations to demonstrate the wrangled air quality data over time for essential pollutants linked to fossil fuel generation, such as SO2, NOX, and PM2.5. From the results presented below, it is evident that the amount of pollutants measured has been decreasing over time.
-
-#notes: why exclude PM10 and CO?
+After analyzing the increasing installed capacity of solar and wind plants in the United States, with a special focus on California, Texas, and Iowa, we proceeded to determine the concentration changes of critical criteria pollutants over time. To simplify the process, we used visualizations to to present the data on the reduction of SO2, NO2, and PM2.5 over time, which are associated with fossil fuel generation. As per our findings below, it's evident that the concentration of these pollutants has been steadily decreasing over the years.
 
 ```{r Pollutant Data Wrangling, echo=FALSE, message=FALSE, warning=FALSE}
 df_pollutant_location<-merge(df_pollutant_monthly,df_state,by='State') #add state abbreviation
@@ -376,10 +371,10 @@ df_pollutant_top3<-df_pollutant_location %>%
   arrange(Date)
 
 #CO
-df_CO_top3<-df_pollutant_top3 %>%
-  filter(Pollutant=="Carbon monoxide")%>% 
-  mutate(Year = year(Date)) %>% 
-  mutate(Year = as.factor(Year))
+#df_CO_top3<-df_pollutant_top3 %>%
+#  filter(Pollutant=="Carbon monoxide")%>% 
+#  mutate(Year = year(Date)) %>% 
+#  mutate(Year = as.factor(Year))
 
 #PM2.5
 df_PM2.5_top3<-df_pollutant_top3 %>%
@@ -406,35 +401,24 @@ df_NO2_top3<-df_pollutant_top3 %>%
 #  mutate(Year = as.factor(Year))
 ```
 
-```{r Visualization: PM2.5, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold",fig.cap="PM2.5 Concentration", out.width="50%"}
-ggplot(df_PM2.5_top3, aes(x =Date, y = Mean, color=State)) +
-  geom_line()+
-  labs(x="Date",y="mg/m\u00B3")+
-  ggtitle("PM2.5 Concentration")+
-  theme(plot.title = element_text(hjust = 0.5))
-```
 
-```{r Visualization: SO2, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold",fig.cap="SO2 Concentration", out.width="50%"}
+```{r Visualization Pollutants, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold",fig.cap="Trends in Pollutant Concentrations", out.width="50%"}
 ggplot(df_SO2_top3, aes(x =Date, y = Mean, color=State)) +
   geom_line()+
   labs(x="Date",y="Parts per million")+
-  ggtitle("Sulfur Dioxide Concentration")+
+  ggtitle("Trends in SO2 Concentrations")+
   theme(plot.title = element_text(hjust = 0.5))
-```
 
-```{r Visualization: CO, eval=FALSE, fig.cap="CO Concentration", fig.show="hold", message=FALSE, warning=FALSE, include=FALSE, out.width="50%"}
-ggplot(df_CO_top3, aes(x =Date, y = Mean, color=State)) +
+ggplot(df_PM2.5_top3, aes(x =Date, y = Mean, color=State)) +
   geom_line()+
-  labs(x="Date",y="Parts per million")+
-  ggtitle("Carbon Monoxide Concentration")+
+  labs(x="Date",y="mg/m\u00B3")+
+  ggtitle("Trends in PM2.5 Concentrations")+
   theme(plot.title = element_text(hjust = 0.5))
-```
 
-```{r Visualization: NO2, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold",fig.cap="NO2 Concentration", out.width="50%"}
 ggplot(df_NO2_top3, aes(x =Date, y = Mean, color=State)) +
   geom_line()+
   labs(x="Date",y="Parts per billion")+
-  ggtitle("Nitrogen Dioxide Concentration")+
+  ggtitle("Trends in NO2 Concentrations")+
   theme(plot.title = element_text(hjust = 0.5))
 ```
 \newpage
