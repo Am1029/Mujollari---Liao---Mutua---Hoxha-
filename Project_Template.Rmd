@@ -11,6 +11,7 @@ output: html_document
 \listoffigures 
 \newpage
 
+
 #Ina: double check the parts with "notes" before submission
 
 ```{r Install Packages, warning=FALSE, include=FALSE, echo=FALSE}
@@ -68,7 +69,7 @@ library(kableExtra)
 plot_theme<- theme_classic(base_size = 12)+
   theme(
     #plot background
-    plot.background = element_rect(color="gray"),
+    plot.background = element_rect(color="white"),
     
     #plot title
     plot.title=element_text(color="black",hjust=0.5,vjust=1),
@@ -77,7 +78,7 @@ plot_theme<- theme_classic(base_size = 12)+
     axis.text=element_text(color="black"),
     
     #gridlines 
-    panel.grid.major=element_line("white"),
+    panel.grid.major=element_line("lightgray"),
     axis.ticks=element_line(color="white"),
     
     #legend 
@@ -142,31 +143,31 @@ The hypothesis underlying this research is that an increase in renewable energy 
 
 This question aims to investigate the correlation between the rise in renewable energy generation and the concentrations of various air pollutants. It seeks to understand whether regions with higher renewable energy output exhibit lower levels of air pollutants.
 
-2: Among air quality indicators (PM10, PM2.5, CO, NO2, and SO2), which display the most significant response to variations in energy generation?
+2: Among air quality indicators (PM2.5, NO2, and SO2), which display the most significant response to variations in energy generation?
 
 This question delves deeper into identifying which specific pollutants are most responsive to changes in energy generation types. It is crucial for pinpointing the environmental benefits of renewable energy sources and for policy-making aimed at targeted air pollution reduction.
 \newpage
 
 # Dataset Information
 
-The exploratory analysis required the combination of air quality and power plant datasets. Air quality data in the analysis was obtained from the United States Environmental Protection Agency while power plant data was obtained from the U.S. Energy Information Administration. 
-#notes: add data processed process
-The sample years were the two decades namely 2001 - 2021.
+The exploratory analysis required the combination of air quality and power plant datasets. Air quality data in the analysis was obtained from the United States Environmental Protection Agency (EPA) while power plant data was obtained from the U.S. Energy Information Administration (EIA).Our analysis covered a period of two decades, from 2001 to 2021. The following are descriptions for each dataset and data wrangling processes. 
 
+## Air QUality Data
+EPA has established air quality standards for six pollutants which include particular matter, ozone, sulfur dioxide, nitrogen dioxide, carbon monoxide, and lead. Among these, particular matter (PM2.5), nitrogen dioxide (NO2), and sulfur dioxide (SO2) are mainly produced as by-products of fossil fuel combustion and pose significant threats to human health (Perera et al. 2019, Perera 2017, Bridges et al. 2015). Thus, this study aims to investigate the relationship between the three air quality indicators, PM2.5, NO2, and SO2, and energy generation. We downloaded the pollutants data from the EPA website that is available from 1980 to 2021 (https://aqs.epa.gov/aqsweb/airdata/download_files.html#Daily). The data is at the county level and consists of number of observation points for each county. We calculated the daily mean by state to retrieve the monthly pollutant concentrations at the state-level.
 
+## Power Plant Data
+We collected monthly and annual energy generation from power plants and power plant locations and capacities from two datasets, EIA-923 (https://www.eia.gov/electricity/data/eia923/) and EIA-860 (https://www.eia.gov/electricity/data/eia860/), respectively. The EIA-923 dataset provides us with detailed generator data such as generation, fuel consumption, and stocks. On the other hand, the EIA-860 dataset lists the capacities of power plants, including the generators that are operable, as well as the plant-level data for the surveyed generators, which includes their locations information.
 
-#notes: confirm variable in the dataset information is raw data
-```{r Table: Dataset Information, echo=FALSE, message=FALSE, warning=FALSE}
+```{r Table: Dataset Information, echo=FALSE, message=FALSE, warning=FALSE,fig.cap="Table: Dataset Information for the Sample Period 2001 - 2021"}
 dataset_info<- data.frame(
   Dataset = c("Air Quality Summary Statistics by Criteria Pollutants and Location","Power Plant Generator Level Capacities and Locations","Power Plant Monthly Energy Generation "),
   Source = c("EPA Air Quality System (AQS) ","EIA Form EIA-860","EIA Form EIA-923"),
-  Variables = c("Daily PM2.5, PM10, SO2, NO, and CO Concentrations","Annual Installed Generation Capacity by Fuel Type","Monthly Net Generation by Fuel Type"))
+  Variables = c("Monthly PM2.5, SO2, and NO2 Concentrations","Annual Installed Generation Capacity by Fuel Type","Monthly Net Generation by Fuel Type"))
 
-info_table<-knitr::kable(dataset_info,caption="Dataset Information for the Sample Period 2001 - 2021")
-info_table_new<- info_table %>%
+info_table<-knitr::kable(dataset_info)%>%
   kable_styling(full_width = FALSE) #create bottom lines in the table
 
-info_table_new
+info_table
 ```
 
 \newpage
@@ -198,7 +199,7 @@ df_generation_annual <- df_generation_monthly %>%
   summarise(NetGeneration = sum(NetGeneration))
 ```
 
-```{r Visualization: Installed Capacity,echo=FALSE, message=FALSE, warning=FALSE,fig.show="hold",fig.cap="Figure. Annual Installed Generation Capacity: Solar and Wind (MW)",out.height="50%"}
+```{r Visualization: Installed Capacity,echo=FALSE, message=FALSE, warning=FALSE,fig.cap="Figure. Annual Installed Generation Capacity: Solar and Wind (MW)",out.height="30%"}
 df_plantcapacities_locations %>%
   group_by(STATE, YEAR) %>% 
   summarise(CAPACITY = sum(CAPACITY)) %>%
@@ -213,7 +214,7 @@ df_plantcapacities_locations %>%
   gghighlight(max(CAPACITY)>12000) #only highlight top 3 states with different colors
 ```
 
-```{r Visualization: Annual Generation,echo=FALSE, message=FALSE, warning=FALSE,fig.show="hold",fig.cap="Figure. Annual Solar and Wind Energy Generation over time (TWh)",out.height="50%"}
+```{r Visualization: Annual Generation,echo=FALSE, message=FALSE, warning=FALSE,fig.cap="Figure. Annual Solar and Wind Energy Generation over time (TWh)",out.height="30%"}
 df_generation_annual %>% 
   ggplot(aes(x=Year,
              y=NetGeneration,
@@ -226,7 +227,7 @@ df_generation_annual %>%
   scale_color_viridis_d() 
 ```
 
-```{r Visualization: Monthly Generation,echo=FALSE, message=FALSE, warning=FALSE,fig.show="hold",fig.cap="Figure. Monthly Renewable Energy Generation per State (TWh)",out.height="50%"}
+```{r Visualization: Monthly Generation,echo=FALSE, message=FALSE, warning=FALSE,fig.cap="Figure. Monthly Renewable Energy Generation per State (TWh)",out.height="30%"}
 df_generation_monthly %>%
   ggplot(aes(x=Date,
              y=NetGeneration,
@@ -241,8 +242,7 @@ df_generation_monthly %>%
   
 The change in installed solar and wind plants can be also be visualized spatially across the contiguous United States as illustrated below. From the map, we note that the number of installed solar and wind plants increased significantly over the two decades from 2001 to 2021.  
 
-
-```{r Visualization: Exploratory Spatial, echo=FALSE, message=FALSE, warning=FALSE, out.width="100%"}
+```{r Visualization: Exploratory Spatial, echo=FALSE, message=FALSE, warning=FALSE,fig.cap="Figure. Solar and Wind Power Plants Locations", out.width="100%"}
 
 df_plantcapacities_locations_sf_2001 <- df_plantcapacities_locations %>%
   na.omit() %>%
@@ -336,7 +336,7 @@ animated_map_IA <- ggplot() +
   shadow_mark()
 ```
 
-```{r Create GIF, echo=FALSE, message=FALSE, warning=FALSE,fig.show="hold",fig.cap="Solar and Wind Power Plant Locations"}
+```{r Create GIF, echo=FALSE, message=FALSE, warning=FALSE,fig.show="hold",fig.cap="Figure. Solar and Wind Power Plant Locations"}
 
 #CA_gif <- animate(animated_map_CA, renderer = gifski_renderer(), fps = 20, duration = 30) 
 #TX_gif <- animate(animated_map_TX, renderer = gifski_renderer(), fps = 20, duration = 30)
@@ -344,9 +344,10 @@ animated_map_IA <- ggplot() +
  
 
 # Create GIF
-CA_gif <- animate(animated_map_CA, width = 300, height = 300) #notes: error message, Error: arguments have different crs
+CA_gif <- animate(animated_map_CA, width = 300, height = 300) 
 TX_gif <- animate(animated_map_TX, width = 300, height = 300)
 IA_gif <- animate(animated_map_IA, width = 300, height = 300)
+#notes: still have error message
 
 CA_mgif <- image_read(CA_gif)
 TX_mgif <- image_read(TX_gif)
@@ -561,7 +562,6 @@ IA.SO2.monthly.ts <- ts(df_IA.energy.air.data.SO2$Mean,
 IA.NOX.monthly.ts <- ts(df_IA.energy.air.data.NOX$Mean,
                         start=c(first_year,first_month),
                         frequency=12) 
-
 
 #Decomposing the monthly time series objects and plotting
 CA.PM2.5.monthly.data.decomp <- stl(CA.PM2.5.monthly.ts,s.window = "periodic")
@@ -1047,6 +1047,12 @@ Our analysis suggest that the measured value of the pollutants has an inverse re
 
 # References
 Kabeyi, Moses Jeremiah Barasa, and Oludolapo Akanni Olanrewaju. ‘Sustainable Energy Transition for Renewable and Low Carbon Grid Electricity Generation and Supply’. Frontiers in Energy Research, vol. 9, 2022. Frontiers, https://www.frontiersin.org/articles/10.3389/fenrg.2021.743114.
+
+Perera FP. 2017. Multiple threats to child health from fossil fuel combustion: Impacts of air pollution and climate change. Environmental Health Perspectives 125:141-148.
+
+Perera, F., Ashrafi, A., Kinney, P., & Mills, D. (2019). Towards a fuller assessment of benefits to children's health of reducing air pollution and mitigating climate change due to fossil fuel combustion. Environmental research, 172, 55-72.
+
+Bridges, A., Felder, F. A., McKelvey, K., & Niyogi, I. (2015). Uncertainty in energy planning: Estimating the health impacts of air pollution from fossil fuel electricity generation. Energy Research & Social Science, 6, 74-77.
 
 Environmental Impacts of Renewable Energy Technologies | Union of Concerned Scientists. https://www.ucsusa.org/resources/environmental-impacts-renewable-energy-technologies. Accessed 6 Dec. 2023.
 
