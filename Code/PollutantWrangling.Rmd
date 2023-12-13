@@ -1,0 +1,189 @@
+---
+title: "pollutant_1126"
+author: "Ina Liao"
+date: "2023-11-20"
+output: pdf_document
+geometry: margin=2.54cm
+editor_options: 
+  chunk_output_type: console
+---
+```{r Install Packages, message=FALSE}
+#install.packages("rvest")
+#install.packages("dataRetrieval")
+#install.packages("tidycensus")
+
+library(tidyverse)
+library(lubridate)
+library(viridis)
+library(here)
+library(rvest)
+library(dataRetrieval)
+library(tidycensus)
+```
+
+```{r Import Files: CO, message=FALSE}
+here()
+file_path<-'/Users/inaliao/Desktop/Pollutant/CO (42101)' #files stored in varied paths due to Git's file size constraints
+csv_files_CO<-list.files(file_path,full.names=TRUE)  # get a list of all csv files in the directory 
+data_list_CO<-list() #create an empty list to store data frame 
+for (file in csv_files_CO){
+  data_CO<-read_csv(file) # read all files in the cvs_files data frame
+  data_list_CO[[file]] <-data_CO # store the data frame in the list
+  } 
+df_CO<-bind_rows(data_list_CO) #convert the list into a data frame 
+```
+
+
+```{r Import Files: SO2,message=FALSE}
+file_path<-'/Users/inaliao/Desktop/Pollutant/SO2 (42401)'
+csv_files_SO2<-list.files(file_path,full.names=TRUE)
+data_list_SO2<-list()
+for (file in csv_files_SO2){
+  data_SO2<-read_csv(file)
+  data_list_SO2[[file]] <-data_SO2
+}
+df_SO2<-bind_rows(data_list_SO2)
+```
+
+```{r Import Files: NO2,message=FALSE}
+file_path<-'/Users/inaliao/Desktop/Pollutant/NO2 (42602)'
+csv_files_NO2<-list.files(file_path,full.names=TRUE)
+data_list_NO2<-list()
+for (file in csv_files_NO2){
+  data_NO2<-read_csv(file)
+  data_list_NO2[[file]] <-data_NO2
+}
+df_NO2<-bind_rows(data_list_NO2)
+```
+
+```{r Import Files: PM2.5,message=FALSE}
+file_path<-'/Users/inaliao/Desktop/Pollutant/PM2.5 (88101)'
+csv_files_PM2.5<-list.files(file_path,full.names=TRUE)
+data_list_PM2.5<-list()
+for (file in csv_files_PM2.5){
+  data_PM2.5<-read_csv(file)
+  data_list_PM2.5[[file]] <-data_PM2.5
+}
+df_PM2.5<-bind_rows(data_list_PM2.5)
+```
+
+```{r Import Files: PM10,message=FALSE}
+file_path<-'/Users/inaliao/Desktop/Pollutant/PM10 (81102)'
+csv_files_PM10<-list.files(file_path,full.names=TRUE)
+data_list_PM10<-list()
+for (file in csv_files_PM10){
+  data_PM10<-read_csv(file)
+  data_list_PM10[[file]] <-data_PM10
+}
+df_PM10<-bind_rows(data_list_PM10)
+```
+
+```{r Data Wrangling: CO, message=FALSE}
+data_CO_processed<- df_CO %>%
+  select('State Name', 'County Name','Latitude', 'Longitude', 'Parameter Name', 'Date Local', 'Units of Measure','Arithmetic Mean')%>%
+  rename(Date_ymd='Date Local',
+         County='County Name',
+         State='State Name',
+         Unit='Units of Measure',
+         Pollutant='Parameter Name',
+         Mean='Arithmetic Mean')%>%
+  mutate(Date=format(Date_ymd,'%Y-%m'))%>%
+  group_by(State,Date,Latitude, Longitude,Pollutant,Unit)%>%
+  summarise(Mean=mean(Mean,na.rm = TRUE))
+```
+
+```{r Data Wrangling: NO2, message=FALSE}
+data_NO2_processed<- df_NO2 %>%
+  select('State Name', 'County Name','Latitude', 'Longitude', 'Parameter Name', 'Date Local', 'Units of Measure','Arithmetic Mean')%>%
+  rename(Date_ymd='Date Local',
+         County='County Name',
+         State='State Name',
+         Unit='Units of Measure',
+         Pollutant='Parameter Name',
+         Mean='Arithmetic Mean')%>%
+  mutate(Date=format(Date_ymd,'%Y-%m'))%>%
+  group_by(State,Date,Latitude, Longitude,Pollutant,Unit)%>%
+  summarise(Mean=mean(Mean,na.rm = TRUE))
+```
+
+```{r Data Wrangling: PM10, message=FALSE}
+data_PM10_processed<- df_PM10 %>%
+  select('State Name', 'County Name','Latitude', 'Longitude', 'Parameter Name', 'Date Local', 'Units of Measure','Arithmetic Mean')%>%
+  rename(Date_ymd='Date Local',
+         County='County Name',
+         State='State Name',
+         Unit='Units of Measure',
+         Pollutant='Parameter Name',
+         Mean='Arithmetic Mean')%>%
+  mutate(Date=format(Date_ymd,'%Y-%m'))%>%
+  group_by(State,Date,Latitude, Longitude,Pollutant,Unit)%>%
+  summarise(Mean=mean(Mean,na.rm = TRUE))
+```
+
+```{r Data Wrangling: PM2.5, message=FALSE}
+data_PM2.5_processed<- df_PM2.5 %>%
+  select('State Name', 'County Name','Latitude', 'Longitude', 'Parameter Name', 'Date Local', 'Units of Measure','Arithmetic Mean')%>%
+  rename(Date_ymd='Date Local',
+         County='County Name',
+         State='State Name',
+         Unit='Units of Measure',
+         Pollutant='Parameter Name',
+         Mean='Arithmetic Mean')%>%
+  mutate(Date=format(Date_ymd,'%Y-%m'))%>%
+  group_by(State,Date,Latitude, Longitude,Pollutant,Unit)%>%
+  summarise(Mean=mean(Mean,na.rm = TRUE))
+```
+
+```{r Data Wrangling: SO2, message=FALSE}
+data_SO2_processed<- df_SO2 %>%
+  select('State Name', 'County Name','Latitude', 'Longitude', 'Parameter Name', 'Date Local', 'Units of Measure','Arithmetic Mean')%>%
+  rename(Date_ymd='Date Local',
+         County='County Name',
+         State='State Name',
+         Unit='Units of Measure',
+         Pollutant='Parameter Name',
+         Mean='Arithmetic Mean')%>%
+  mutate(Date=format(Date_ymd,'%Y-%m'))%>%
+  group_by(State,Date,Latitude, Longitude,Pollutant,Unit)%>%
+  summarise(Mean=mean(Mean,na.rm = TRUE))
+```
+
+```{r Monthly Mean,message=FALSE }
+CO_monthly<-data_CO_processed %>%
+  group_by(State,Date,Pollutant,Unit)%>%
+  summarise(Mean=mean(Mean,na.rm = TRUE))
+
+NO2_monthly<-data_NO2_processed %>%
+  group_by(State,Date,Pollutant,Unit)%>%
+  summarise(Mean=mean(Mean,na.rm = TRUE))
+
+SO2_monthly<-data_SO2_processed %>%
+  group_by(State,Date,Pollutant,Unit)%>%
+  summarise(Mean=mean(Mean,na.rm = TRUE))
+
+PM2.5_monthly<-data_PM2.5_processed %>%
+  group_by(State,Date,Pollutant,Unit)%>%
+  summarise(Mean=mean(Mean,na.rm = TRUE))
+
+PM10_monthly<-data_PM10_processed %>%
+  group_by(State,Date,Pollutant,Unit)%>%
+  summarise(Mean=mean(Mean,na.rm = TRUE))
+
+```
+
+```{r Conbine Data Frame, message=FALSE}
+df_pollutant<-rbind(CO_monthly,NO2_monthly,SO2_monthly,PM2.5_monthly,PM10_monthly)
+```
+
+```{r Latitude & Longitude, message=FALSE}
+df_lat_long<-data_PM10_processed %>%
+  group_by(State)%>%
+  slice(1) %>% #select the first observation station 
+  select(State, Longitude, Latitude)
+# different pollutants are collected from the same stations 
+```
+
+```{r Export Files, message=FALSE}
+write.csv(df_pollutant, file = "./Data/Processed/df_pollutant.csv", row.names = FALSE)
+write.csv(df_lat_long, file = "./Data/Processed/df_latitude&longitude.csv", row.names = FALSE)
+```
