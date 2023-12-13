@@ -17,8 +17,8 @@ air pollutant, air quality, renewable generation, solar, wind
 
 ## Database Information
 
-This analysis uses three databases: EPA Air Quality System (<https://aqs.epa.gov/aqsweb/airdata/download_files.html#Daily>), EIA-860 (https://www.eia.gov/electricity/data/eia860/), and EIA-923 (<https://www.eia.gov/electricity/data/eia923/>).
-We collected air quality summary statistics by criteria pollutants and location data from the EPA Air Quality System (AQS). The data is available from 1980 to 2021. Power plant generator level capacities and locations are retrieved from EIA-860, and monthly and annual energy generation of power plants is collected from EIA-923. EIA data covers the year from 2001 to 2021. Due to the file size limitations, we were unable to upload the raw data to the Git repository. Nonetheless, we have uploaded the processed data for further analysis.
+This analysis uses three databases: EPA Air Quality System (<https://aqs.epa.gov/aqsweb/airdata/download_files.html#Daily>), EIA-860 (<https://www.eia.gov/electricity/data/eia860/>), and EIA-923 (<https://www.eia.gov/electricity/data/eia923/>).
+We collected air quality summary statistics by criteria pollutants and location data from the EPA Air Quality System (AQS). The data is available from 1980 to 2021. Power plant generator level capacities and locations are retrieved from EIA-860, and monthly and annual energy generation of power plants is collected from EIA-923. EIA data covers the year from 2001 to 2021. Due to the file size limitations, we were unable to upload the raw data to the Git repository. Nonetheless, we have uploaded the processed data files that were used for further analysis.
 For details of each database, please refer to the files in the Metadata folder under the Data folder.
 
 

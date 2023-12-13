@@ -1,7 +1,5 @@
 ```{r energyRawDataWrangling}
-# Set your working directory
-
-# Load your packages
+# Loading packages
 #install.packages('readxl')
 #install.packages('foreign')
 library(readxl)
@@ -11,9 +9,7 @@ library(lubridate)
 library(foreign)
 library(dplyr)
 
-# Set your ggplot theme
-
-# Load your datasets
+# Loading datasets
 
 #Importing electricity generation datasets in bulk
 eia923GenerationFiles = list.files(path = "./Data/Raw/eia923/", pattern=".xlsx", full.names=TRUE)

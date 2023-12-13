@@ -264,7 +264,7 @@ interactiveMap@map
 
 ```
 
-We utilized ggplot and gganimate to visualize the increase and distribution of plants within the states that had the highest growth in installed capacity. We thus found the top three states and created a visualization that is shown as Figure \@ref(fig:CreateGIF).
+We utilized ggplot and gganimate to visualize the increase and distribution of plants within the states that had the highest growth in installed capacity. We thus determined the top three states and created a visualization that is shown below as Figure \@ref(fig:CreateGIF).
 
 ```{r VisualizationTop3States, echo=FALSE, message=FALSE, warning=FALSE}
 # Plot state boundary
@@ -632,7 +632,7 @@ print(visualizeVariables('IA','Nitrogen dioxide (NO2)')[[2]])
 
 ```
 
-The figures above suggest that there is an inverse or negative correlation between the measured levels of pollutants and net generation from solar and wind sources. This means that as the amount of energy generated from these sources increases, the quantity of the three criteria pollutants decreases. To investigate this further, we performed a simple linear regression analysis between the mean quantity of each pollutant and net energy generation. We recognized that there are other factors such as population growth, economic activities, and policy changes that might affect air quality, leading to biases in the linear regression model. To account for these factors, error terms were used in the models. You can find the results of the simple linear regression analysis in Table \@ref(tab:SimpleLinearRegression).
+The figures above suggest that there is an inverse or negative correlation between the measured levels of pollutants and net generation from solar and wind sources. This means that as the amount of energy generated from these sources increases, the quantity of the three criteria pollutants decreases. To investigate this further, we performed a simple linear regression analysis between the mean quantity of each pollutant and net energy generation. We recognize that there are other factors such as population growth, economic activities, and policy changes that might affect air quality, leading to biases in the linear regression model. To account for these factors, error terms were used in the models. You can find the results of the simple linear regression analysis in Table \@ref(tab:SimpleLinearRegression).
 
 ```{r SimpleLinearRegression, echo=FALSE, message=FALSE, warning=FALSE}
 #simple linear regression
@@ -778,15 +778,15 @@ tbl_stack_regressionTables
 
 **PM2.5 and Renewable Generation**
 
-A unit increase in renewable generation is associated with 0.77, 0.28, and 1.3 unit decrease in PM2.5 concentration California, Texas and Iowa respectively. Assuming a confidence interval of 0.05, the p values are less than our confidence level which implies that the results are statistically significant and there is a significant negative correlation between PM2.5 concentration and renewable energy generation. Based on the R-squared values, 8.8%, 17.7% and 21.4% of the total variance in PM2.5 concentration in California, Texas and Iowa respectively can be explained by renewable energy generation.
+A unit increase in renewable generation is associated with 0.77, 0.28, and 1.3 unit decrease in PM2.5 concentration in California, Texas and Iowa respectively. Assuming a confidence interval of 0.05, the p values are less than our confidence level which implies that the results are statistically significant and there is a significant negative correlation between PM2.5 concentration and renewable energy generation. Based on the R-squared values, 8.8%, 17.7% and 21.4% of the total variance in PM2.5 concentration in California, Texas and Iowa respectively can be explained by renewable energy generation.
 
 **SO2 and Renewable Generation**
 
-A unit increase in renewable generation is associated with 0.21, 0.09 and 0.64 unit decrease in SO2 concentration California, Texas and Iowa respectively. Assuming a confidence interval of 0.05, the p values are less than our confidence level which implies that the results are statistically significant and there is a significant negative correlation between SO2 concentration and renewable energy generation. Based on the R-squared values, 44.5%, 21.3% and 42.3% of the total variance in SO2 concentration in California, Texas and Iowa respectively can be explained by renewable energy generation.
+A unit increase in renewable generation is associated with 0.21, 0.09 and 0.64 unit decrease in SO2 concentration in California, Texas and Iowa respectively. Assuming a confidence interval of 0.05, the p values are less than our confidence level which implies that the results are statistically significant and there is a significant negative correlation between SO2 concentration and renewable energy generation. Based on the R-squared values, 44.5%, 21.3% and 42.3% of the total variance in SO2 concentration in California, Texas and Iowa respectively can be explained by renewable energy generation.
 
 **NO2 and Renewable Generation**
 
-A unit increase in renewable generation is associated with 1.8, 0.47 and 1.5 unit decrease in NO2 concentration California, Texas and Iowa respectively. Assuming a confidence interval of 0.05, the p values are less than our confidence level which implies that the results are statistically significant and there is a significant negative correlation between NO2 concentration and renewable energy generation. Based on the R-squared values, 46.4%, 25.5% and 35.2% of the total variance in NO2 concentration in California, Texas and Iowa respectively can be explained by renewable energy generation.
+A unit increase in renewable generation is associated with 1.8, 0.47 and 1.5 unit decrease in NO2 concentration in California, Texas and Iowa respectively. Assuming a confidence interval of 0.05, the p values are less than our confidence level which implies that the results are statistically significant and there is a significant negative correlation between NO2 concentration and renewable energy generation. Based on the R-squared values, 46.4%, 25.5% and 35.2% of the total variance in NO2 concentration in California, Texas and Iowa respectively can be explained by renewable energy generation.
 
 In conclusion, these observations suggest that increased production of renewable energy may lead to decreased emissions of PM2.5, SO2, and NO2, which are pollutants typically associated with the combustion of fossil fuels.  
 
