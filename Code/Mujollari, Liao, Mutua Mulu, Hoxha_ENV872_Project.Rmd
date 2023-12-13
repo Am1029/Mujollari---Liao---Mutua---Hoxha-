@@ -390,13 +390,13 @@ df_NO2_top3<-df_pollutant_top3 %>%
 ```{r VisualizationPollutants, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold",fig.cap="Trends in Pollutant Concentrations", out.width="50%"}
 ggplot(df_SO2_top3, aes(x =Date, y = Mean, color=State)) +
   geom_line()+
-  labs(x="Date",y="Parts per million")+
+  labs(x="Date",y="Parts per billion")+
   ggtitle("Trends in SO2 Concentrations")+
   theme(plot.title = element_text(hjust = 0.5))
 
 ggplot(df_PM2.5_top3, aes(x =Date, y = Mean, color=State)) +
   geom_line()+
-  labs(x="Date",y="mg/m\u00B3")+
+  labs(x="Date",y="µg/m\u00B3")+
   ggtitle("Trends in PM2.5 Concentrations")+
   theme(plot.title = element_text(hjust = 0.5))
 
@@ -465,8 +465,8 @@ visualizeVariables <- function(selected_state, selected_pollutant){
       geom_point() +
       geom_smooth(method = "lm", color = "red") +
       labs(x="Net Generation (TWh)",
-           y="Nitrogen Dioxide Concentration (µg/m³)",
-           title= paste0("Nitrogen Dioxide Concentration (µg/m³) by Net Generation (TWh)
+           y="Nitrogen Dioxide Concentration (ppb)",
+           title= paste0("Nitrogen Dioxide Concentration (ppb) by Net Generation (TWh)
                          in ",
                          df_state$State[df_state$Abbreviation == selected_state]))
     return(list(df_energy.air.data, plot_energy.air))
