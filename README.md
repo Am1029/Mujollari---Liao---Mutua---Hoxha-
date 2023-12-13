@@ -24,7 +24,7 @@ For details of each database, please refer to the files in the Metadata folder u
 
 ## Folder structure, file formats, and naming conventions 
 
-Data: includes metadata, processed data, raw data (links), and spatial data. 
+Data: includes metadata, processed data, raw data (links), and spatial data.  
 Code: includes the code used for all the processes followed in the analysis.  
 Output: includes the final project report.
 
