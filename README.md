@@ -2,7 +2,7 @@
 
 ## Summary
 
-This study aims to understand the relationship between renewable energy generation and air quality. Due to the constraints of Git uploaded file size, we can not upload all the raw data to the shared repository. This repository is thus mainly used to upload processed data and edit project output together. 
+This study aims to understand the relationship between renewable energy generation and air quality in the United States. Due to the constraints of Git uploaded file size, we can not upload all the raw data to the shared repository. This repository is thus mainly used to store the processed data, code used in all stages from data wrangling to analysis, and the project output in the form of a final report. 
 
 
 ## Investigators
@@ -24,6 +24,7 @@ For details of each database, please refer to the files in the Metadata folder u
 
 ## Folder structure, file formats, and naming conventions 
 
-Data: includes metadata, processed data, raw data, and spatial data. 
-Project: includes all the analysis processes. 
+Data: includes metadata, processed data, raw data (links), and spatial data. 
+Code: includes the code used for all the processes followed in the analysis.  
+Output: includes the final project report.
 
