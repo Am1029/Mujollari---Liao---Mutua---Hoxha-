@@ -155,7 +155,7 @@ EPA has established air quality standards for six pollutants which include parti
 
 We collected monthly and annual energy generation from power plants and power plant locations and capacities from two datasets, EIA-923 (<https://www.eia.gov/electricity/data/eia923/>) and EIA-860 (<https://www.eia.gov/electricity/data/eia860/>), respectively. The EIA-923 dataset provides us with detailed generator data such as generation, fuel consumption, and stocks. On the other hand, the EIA-860 dataset lists the capacities of power plants, including the generators that are operable, as well as the plant-level data for the surveyed generators, which includes their locations information.
 
-Due to the file size limitations, we were unable to upload the raw data to the Git repository. Nonetheless, we have uploaded the processed data files that were used for further analysis. Details of the wrangling process from raw to processed data can be referred to the "Code" file in the Git repository. 
+Due to the file size limitations, we were unable to upload the raw data to the Git repository. Nonetheless, we have uploaded the processed data files that were used for further analysis. Details of the wrangling process from raw to processed data can be referenced from the "Code" folder in the Git repository. 
 
 ```{r TableDatasetInformation, echo=FALSE, message=FALSE, warning=FALSE,fig.show="hold", out.width="50%",fig.align = "center"}
 dataset_info<- data.frame(
