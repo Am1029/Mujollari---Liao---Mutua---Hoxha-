@@ -1,0 +1,62 @@
+# EIA-860 (https://www.eia.gov/electricity/data/eia860/)
+
+## Summary
+This dataset collects generator-level specific information about existing and planned generators and associated environmental equipment at electric power plants with 1 megawatt or greater of combined nameplate capacity.
+
+## Database Information
+Download the zip files for the respective years at https://www.eia.gov/electricity/data/eia860/. 
+LayoutYyyyy– Provides a directory of all (published) data elements collected on the Form EIA-860 together with the related description, specific file location(s), and, where appropriate, an explanation of codes.
+
+1___UtilityYyyyy - Contains utility-level data for the plants and generators surveyed in the reporting year.
+
+2___PlantYyyyy - Contains plant-level data for the generators surveyed in all available years.
+
+3_1_GeneratorYyyyy – Contains generator-level data for the surveyed generators, split into three tabs.
+The Operable tab includes those generators which are currently operating, out of service or on standby;
+The Proposed tab includes those generators which are planned and not yet in operation; and
+The Retired and Canceled tab includes those generators which were cancelled prior to completion and operation and retired generators at existing plants.
+The retired tab only includes those retired generators which were reported in the most current data cycle. This is not a comprehensive list. Starting with March 2017 data, Preliminary Monthly Electric Generator Inventory includes a comprehensive list of generators which retired since 2002. The list can be found on the Retired tab of the data file.
+
+3_2_WindYyyyy – Contains additional details for surveyed generators that use wind as an energy source, split into two tabs:
+The Operable tab includes those generators which are currently operating, out of service or on standby; and
+The Retired and Canceled tab includes those generators which were cancelled prior to completion and operation and retired generators at existing plants.
+
+3_3_SolarYyyyy - Contains additional details for surveyed generators that use solar as an energy source, split into two tabs:
+The Operable tab includes those generators which are currently operating, out of service or on standby;
+The Retired and Canceled tab includes those generators which were cancelled prior to completion and operation and retired generators at existing plants.
+
+3_4_Energy_StorageYyyyy – Contains additional details of surveyed generators for the energy storage technology, split into two tabs:
+The Operable tab includes those generators which are currently operating, out of service or on standby;
+The Retired and Canceled tab includes those generators which were cancelled prior to completion and operation and retired generators at existing plants.
+
+3_5_MultiFuelYyyyy – Contains data on fuel-switching and the use of multiple fuels by surveyed generators, split into three tabs:
+The Operable tab includes those generators which are currently operating, out of service or on standby; and
+The Proposed tab includes those generators which are planned and not yet in operation; and
+The Retired and Canceled tab includes those generators which were cancelled prior to completion and operation and retired generators at existing plants.
+
+4___OwnerYyyyy – Contains owner and/or operator data for generators with shared ownership and generators that are wholly-owned by an entity other than the operator (generators not appearing in the file are wholly-owned by their operator).
+
+6_1_EnviroAssocYyyyy – Contains boiler association data for the environmental equipment data collected on the Form EIA-860.
+The Boiler Generator identifies which boilers are associated with each generator;
+The Boiler Cooling tab shows which cooling systems are associated with each boiler;
+The Boiler Particulate Matter tab shows which flue gas particulate (FGP) collectors are associated with each boiler;
+The Boiler SO2 tab shows which flue gas desulfurization (FGD) systems are associated with each boiler
+The Boiler NOx tab shows which nitrogen oxide control equipment is associated with each boiler;
+The Boiler Mercury tab shows which mercury control equipment is associated with each boiler
+The Boiler Stack Flue tab shows which stacks and flues are associated with each boiler; and
+The Emissions Control Equipment tab shows the operational status, in-service date, and installation costs of all the environmental equipment.
+
+6_2_EnviroEquipYyyyy – Contains environmental equipment data for the surveyed generators.
+The Emission Standards & Strategies tab shows boiler data as collected on Schedule 6, Part B of the Form EIA-860;
+The Boiler Info & Design Parameters tab shows boiler data as collected on Schedule 6, Part C;
+The Cooling tab shows cooling system data as collected on Schedule 6, Part D;
+The FGP tab shows FGP data as collected on Schedule 6, Part E;
+The FGD tab shows FGD data as collected on Schedule 6, Part F; and
+The StackFlue tab shows stack and flue data as collected on Schedule 6, Part G.
+
+
+## Data Content Information
+From the downloaded .zip files, only the following two files of interest were retained for the analysis: 
+- 2___PlantYyyyy 
+- 3_1_GeneratorYyyyy file, only the data in the Operable tab was used for the analysis.
+
