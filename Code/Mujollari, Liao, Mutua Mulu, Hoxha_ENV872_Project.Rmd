@@ -157,13 +157,13 @@ We collected monthly and annual energy generation from power plants and power pl
 
 Due to the file size limitations, we were unable to upload the raw data to the Git repository. Nonetheless, we have uploaded the processed data for further analysis. Details of the wrangling process from raw to processed data can be referred to the "Code" file in the Git repository. 
 
-```{r Table: Dataset Information, echo=FALSE, message=FALSE, warning=FALSE,fig.show="hold", out.width="50%",fig.align = "center"}
+```{r TableDatasetInformation, echo=FALSE, message=FALSE, warning=FALSE,fig.show="hold", out.width="50%",fig.align = "center"}
 dataset_info<- data.frame(
   Dataset = c("Air Quality Summary Statistics by Criteria Pollutants and Location","Power Plant Generator Level Capacities and Locations","Power Plant Monthly Energy Generation "),
   Source = c("EPA Air Quality System (AQS) ","EIA Form EIA-860","EIA Form EIA-923"),
   Variables = c("Monthly PM2.5, SO2, and NO2 Concentrations","Annual Installed Generation Capacity by Fuel Type","Monthly Net Generation by Fuel Type"))
 
-info_table<-knitr::kable(dataset_info,caption = "Table 1. Dataset Information for the Sample Period 2001 - 2021")%>%
+info_table<-knitr::kable(dataset_info,caption = "Dataset Information for the Sample Period 2001 - 2021")%>%
   kable_styling(full_width = FALSE)  #create bottom lines in the table
 info_table
 ```
@@ -172,9 +172,9 @@ info_table
 
 # Exploratory Analysis
 
-We began our exploratory analysis by examining if and how solar and wind energy generating capacity, net generation and air quality has changed over time in the contiguous United States. We first used the wrangled power plant to visualize the changes in the total installed capacity of solar and wind plants from 2001 to 2021. Figure 1 shows that California, Texas, and Iowa hold the highest cumulative installed capacity, suggesting that these states have significant growth in their installed capacity compared to other states. In addition, we plotted the annual energy generation from solar and wind sources over the same period of time, observing that the states with the highest installed capacity also exhibit the largest annual energy generation from these renewable sources (Figure 2 and Figure 3).
+We began our exploratory analysis by examining if and how solar and wind energy generating capacity, net generation and air quality has changed over time in the contiguous United States. We first used the wrangled power plant to visualize the changes in the total installed capacity of solar and wind plants from 2001 to 2021. Figure \@ref(fig:VisualizationInstalledGenerationCapacity) shows that California, Texas, and Iowa hold the highest cumulative installed capacity, suggesting that these states have significant growth in their installed capacity compared to other states. In addition, we plotted the annual energy generation from solar and wind sources over the same period of time, observing that the states with the highest installed capacity also exhibit the largest annual energy generation from these renewable sources (Figure \@ref(fig:VisualizationAnnualGeneration) and Figure \@ref(fig:VisualizationMonthlyGeneration)).
 
-```{r Data Wrangling: Capacity Over Time, echo=FALSE, message=FALSE, warning=FALSE}
+```{r DataWrangling: Capacity Over Time, echo=FALSE, message=FALSE, warning=FALSE}
 #Plotting out trend for top 3 states
 top_states_capacity2021 <- df_plantcapacities_locations %>% 
   filter(YEAR == 2021) %>% 
@@ -196,7 +196,7 @@ df_generation_annual <- df_generation_monthly %>%
   summarise(NetGeneration = sum(NetGeneration))
 ```
 
-```{r Visualization: Installed Generation Capacity,echo=FALSE, message=FALSE, warning=FALSE, fig.cap="Annual Installed Generation Capacity: Solar and Wind (MW)",out.width="50%",out.height="60%",fig.align = "center"}
+```{r VisualizationInstalledGenerationCapacity,echo=FALSE, message=FALSE, warning=FALSE, fig.cap="Annual Installed Generation Capacity: Solar and Wind (MW)",out.width="50%",out.height="60%",fig.align = "center"}
 df_plantcapacities_locations %>%
   group_by(STATE, YEAR) %>% 
   summarise(CAPACITY = sum(CAPACITY)) %>%
@@ -211,7 +211,7 @@ df_plantcapacities_locations %>%
   gghighlight(max(CAPACITY)>12000) #only highlight top 3 states with different colors
 ```
 
-```{r Visualization: Annual Generation,echo=FALSE, message=FALSE, warning=FALSE,fig.cap="Annual Solar and Wind Energy Generation over time (TWh)",out.width="50%",out.height="50%",fig.show="hold",fig.align = "center"}
+```{r VisualizationAnnualGeneration,echo=FALSE, message=FALSE, warning=FALSE,fig.cap="Annual Solar and Wind Energy Generation over time (TWh)",out.width="50%",out.height="50%",fig.show="hold",fig.align = "center"}
 df_generation_annual %>% 
   ggplot(aes(x=Year,
              y=NetGeneration,
@@ -224,7 +224,7 @@ df_generation_annual %>%
   scale_color_viridis_d() 
 ```
 
-```{r Visualization: Monthly Generation,echo=FALSE, message=FALSE, warning=FALSE,fig.cap="Monthly Solar and Wind Energy Generation over time (TWh)",out.width="50%",out.height="50%",fig.show="hold",fig.align = "center"}
+```{r VisualizationMonthlyGeneration,echo=FALSE, message=FALSE, warning=FALSE,fig.cap="Monthly Solar and Wind Energy Generation over time (TWh)",out.width="50%",out.height="50%",fig.show="hold",fig.align = "center"}
 df_generation_monthly %>%
   ggplot(aes(x=Date,
              y=NetGeneration,
@@ -239,7 +239,7 @@ df_generation_monthly %>%
 
 The change in installed solar and wind plants can be also be visualized spatially across the contiguous United States as illustrated below. From the map, we note that the number of installed solar and wind plants increased significantly over the two decades from 2001 to 2021.
 
-```{r Visualization: Exploratory Spatial, echo=FALSE, message=FALSE, warning=FALSE}
+```{r VisualizationExploratorySpatial, echo=FALSE, message=FALSE, warning=FALSE}
 df_plantcapacities_locations_sf_2001 <- df_plantcapacities_locations %>%
   na.omit() %>%
   st_as_sf(coords = c('LONG','LAT'), crs=4269) %>% 
@@ -250,8 +250,8 @@ df_plantcapacities_locations_sf_2021 <- df_plantcapacities_locations %>%
   filter(YEAR == 2021)
 ```
 
-```{r Visualization: Interative Map, echo=FALSE, message=FALSE, warning=FALSE,out.width="100%", fig.cap="Solar and Wind Power Plants Locations and Capacities"}
-mapview(df_plantcapacities_locations_sf_2001,
+```{r VisualizationInterativeMap, echo=FALSE, message=FALSE, warning=FALSE,out.width="100%", fig.cap="Solar and Wind Power Plants Locations and Capacities"}
+interactiveMap <- mapview(df_plantcapacities_locations_sf_2001,
         cex = 'CAPACITY',
         col.regions = '#2b83ba',
         layer.name = '2001') |
@@ -259,13 +259,14 @@ mapview(df_plantcapacities_locations_sf_2001,
         cex = 'CAPACITY',
         col.regions = '#f7fcb9',
         layer.name = '2021') 
+
+interactiveMap@map
+
 ```
 
-Figure 4. Solar and Wind Power Plants Locations and Capacities
+We utilized ggplot and gganimate to visualize the increase and distribution of plants within the states that had the highest growth in installed capacity. We thus found the top three states and created a visualization that is shown as Figure \@ref(fig:CreateGIF).
 
-We utilized ggplot and gganimate to visualize the increase and distribution of plants within the states that had the highest growth in installed capacity. We thus found the top three states and created a visualization that is shown as Figure 5.
-
-```{r Visualization: Top 3 States, echo=FALSE, message=FALSE, warning=FALSE}
+```{r VisualizationTop3States, echo=FALSE, message=FALSE, warning=FALSE}
 # Plot state boundary
 #CA
 state.sf.CA<- st_read(here('Data/Spatial/cb_2018_us_county_20m.shp'),
@@ -336,7 +337,7 @@ animated_map_IA <- ggplot() +
   shadow_mark()
 ```
 
-```{r Create GIF, echo=FALSE, message=FALSE, warning=FALSE,fig.align = "center", fig.cap="Solar and Wind Installed Capacity in California, Texas, Iowa"}
+```{r CreateGIF, echo=FALSE, message=FALSE, warning=FALSE,fig.align = "center", fig.cap="Solar and Wind Installed Capacity in California, Texas, Iowa"}
 
 # Create GIF
 CA_gif <- animate(animated_map_CA, width = 300, height = 300) 
@@ -356,11 +357,9 @@ for(i in 2:96) {
 states_gif
 ```
 
-Figure 5. Solar and Wind Installed Capacity in California, Texas, Iowa
-
 After analyzing the increasing installed capacity of solar and wind plants in the United States, with a special focus on California, Texas, and Iowa, we proceeded to determine the concentration changes of critical criteria pollutants over time. To simplify the process, we used visualizations to to present the data on the reduction of SO2, NO2, and PM2.5 over time, which are associated with fossil fuel generation. As per our findings below, it's evident that the concentration of these pollutants has been steadily decreasing over the years.
 
-```{r Pollutant Data Wrangling, echo=FALSE, message=FALSE, warning=FALSE}
+```{r PollutantDataWrangling, echo=FALSE, message=FALSE, warning=FALSE}
 df_pollutant_location<-merge(df_pollutant_monthly,df_state,by='State') #add state abbreviation
 
 # Select air quality variation among the top 3 states in renewable energy generation
@@ -386,20 +385,9 @@ df_NO2_top3<-df_pollutant_top3 %>%
   mutate(Year = year(Date)) %>% 
   mutate(Year = as.factor(Year))
 
-#PM10
-#df_PM10_top10<-df_pollutant_top10 %>%
-#  filter(Pollutant=="PM10 Total 0-10um STP") %>% 
-#  mutate(Year = year(Date)) %>% 
-#  mutate(Year = as.factor(Year))
-
-#CO
-#df_CO_top3<-df_pollutant_top3 %>%
-#  filter(Pollutant=="Carbon monoxide")%>% 
-#  mutate(Year = year(Date)) %>% 
-#  mutate(Year = as.factor(Year))
 ```
 
-```{r Visualization Pollutants, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold",fig.cap="Trends in Pollutant Concentrations", out.width="50%"}
+```{r VisualizationPollutants, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold",fig.cap="Trends in Pollutant Concentrations", out.width="50%"}
 ggplot(df_SO2_top3, aes(x =Date, y = Mean, color=State)) +
   geom_line()+
   labs(x="Date",y="Parts per million")+
@@ -419,7 +407,7 @@ ggplot(df_NO2_top3, aes(x =Date, y = Mean, color=State)) +
   theme(plot.title = element_text(hjust = 0.5))
 ```
 
-```{r Variable Visualization Function, echo=FALSE, message=FALSE, warning=FALSE}
+```{r VariableVisualizationFunction, echo=FALSE, message=FALSE, warning=FALSE}
 
 visualizeVariables <- function(selected_state, selected_pollutant){
   #Filtering out energy data for the selected state
@@ -511,7 +499,7 @@ To investigate the trend in the measured pollutants over time, we conducted a ti
 
 After decomposing the time series, we observed that each of the three pollutants has a seasonal component as observed in the time series plots shown below. Hence we run the seasonal Mann-Kendall (SMK) test on each dataset, which produced a p-value of less than 0.05 (\<0.05) for each time series. As a result, we can reject the null hypothesis, and the analysis indicates that there has been a change in the recorded PM2.5, SO2, and NO2 concentrations over the period 2001 - 2021 in California, Texas, and Iowa. The negative tau values suggests a negative correlation which implies that the change for each pollutant in each state has been a decrease.
 
-```{r Time Series, echo=FALSE, message=FALSE, warning=FALSE, fig.cap="Time Series Analysis for Pollutants",fig.show="hold", out.width="50%"}
+```{r TimeSeries, echo=FALSE, message=FALSE, warning=FALSE, fig.cap="Time Series Analysis for Pollutants",fig.show="hold", out.width="50%"}
 #Generating PM2.5 time series objects
 first_month <- month(first(df_CA.energy.air.data.PM2.5$Date))
 first_year <- year(first(df_CA.energy.air.data.PM2.5$Date))
@@ -566,7 +554,7 @@ plot(IA.SO2.monthly.data.decomp, main = "SO2 in Iowa")
 plot(IA.NOX.monthly.data.decomp, main = "NO2 in Iowa")
 ```
 
-```{r Monotonic Trend Analysis, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold", out.width="50%", fig.align='center'}
+```{r MonotonicTrendAnalysis, echo=FALSE, message=FALSE, warning=FALSE, fig.show="hold", out.width="50%", fig.align='center'}
 
 # Running the seasonal Mann-Kendall test
 CA.PM2.5.data.trend <- Kendall::SeasonalMannKendall(CA.PM2.5.monthly.ts)
@@ -605,7 +593,7 @@ SMKResults <- bind_rows(lst(CA_PM2.5,
 
 SMKResultsTable <- knitr::kable(SMKResults,
              col.names = c("Trend","tau","2-sided pvalue"),
-             caption = "Table 2. Results of Seasonal Mann-Kendall test") %>% 
+             caption = "Results of Seasonal Mann-Kendall test") %>% 
   kable_styling(full_width = FALSE) #create bottom lines in the table
 
 SMKResultsTable
@@ -644,9 +632,7 @@ print(visualizeVariables('IA','Nitrogen dioxide (NO2)')[[2]])
 
 ```
 
-The figures above suggest that there is an inverse or negative correlation between the measured levels of pollutants and net generation from solar and wind sources. This means that as the amount of energy generated from these sources increases, the quantity of the three criteria pollutants decreases. To investigate this further, we performed a simple linear regression analysis between the mean quantity of each pollutant and net energy generation. We recognized that there are other factors such as population growth, economic activities, and policy changes that might affect air quality, leading to biases in the linear regression model. To account for these factors, error terms were used in the models. You can find the results of the simple linear regression analysis in Table 3.
-
-#notes: add table 3
+The figures above suggest that there is an inverse or negative correlation between the measured levels of pollutants and net generation from solar and wind sources. This means that as the amount of energy generated from these sources increases, the quantity of the three criteria pollutants decreases. To investigate this further, we performed a simple linear regression analysis between the mean quantity of each pollutant and net energy generation. We recognized that there are other factors such as population growth, economic activities, and policy changes that might affect air quality, leading to biases in the linear regression model. To account for these factors, error terms were used in the models. You can find the results of the simple linear regression analysis in Table \@ref(tab:SimpleLinearRegression).
 
 ```{r SimpleLinearRegression, echo=FALSE, message=FALSE, warning=FALSE}
 #simple linear regression
@@ -780,7 +766,11 @@ tbl_merge_IA <-
 #combine tables 
 tbl_stack_regressionTables <-
   tbl_stack(list(tbl_merge_CA, tbl_merge_TX, tbl_merge_IA),
-            group_header = c("California", "Texas", "Iowa"))
+            group_header = c("California", "Texas", "Iowa")) %>% 
+  modify_caption("Summary of Results of Simple Linear Regression") %>%  
+  as_gt() %>% 
+  gt::tab_style(style = gt::cell_text(weight = "bold"),
+                locations = gt::cells_row_groups(groups = everything()))
 
 tbl_stack_regressionTables
 
@@ -836,7 +826,6 @@ ggplot(df_NO2_top3, aes(x = Year,
   theme(legend.position = "bottom")
 
 # SO2
-
 ggplot(df_SO2_top3, aes(x = Year,
                         y = Mean,
                         color = State)) +
@@ -847,23 +836,6 @@ ggplot(df_SO2_top3, aes(x = Year,
        color = "State") +
   theme(legend.position = "bottom")
 
-# PM10 
-#ggplot(df_PM10_top3, aes(x = State, y = Mean, fill = State)) +
-#  geom_boxplot() +
-#  labs(title = "Distribution of PM10 Levels Across States",
-#       x = "State",
-#       y = "PM10 Concentration (µg/m³)") +
-#  theme_minimal() +
-#  theme(legend.position = "none")
-
-# CO
-#ggplot(df_CO_top3, aes(x = State, y = Mean, fill = State)) +
-#  geom_boxplot() +
-#  labs(title = "Distribution of CO Levels Across States",
-#       x = "State",
-#       y = "CO Concentration (ppm)") +
-#  theme_minimal() +
-#  theme(legend.position = "none")
 ```
 
 **PM2.5 Levels**
